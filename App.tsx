@@ -1593,8 +1593,8 @@ function App() {
       isDragging,
     } = useSortable({ id: link.id });
 
-    // 根据视图模式决定卡片样式
-    const isDetailedView = viewMode === 'detailed';
+    // 固定使用简约模式
+    const isDetailedView = false;
 
     const style = {
       transform: CSS.Transform.toString(transform),
@@ -1885,7 +1885,7 @@ function App() {
             <header className="h-16 px-4 lg:px-6 flex items-center justify-between bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shrink-0">
               <div className="flex items-center gap-6">
                 <span className="text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-                  {aiConfig.navigationName || 'CloudNav'}
+                  CloudNav
                 </span>
               </div>
 
@@ -2025,10 +2025,7 @@ function App() {
                     <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">搜索结果</h2>
                     <span className="text-sm text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{displayedLinks.length}</span>
                   </div>
-                  <div className={`grid gap-4 ${viewMode === 'detailed'
-                    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
-                    : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10'
-                    }`}>
+                  <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10">
                     {displayedLinks.map(link => renderLinkCard(link))}
                     {displayedLinks.length > 0 && selectedCategory !== 'all' && (
                       <div className="col-span-full py-12 text-center text-slate-500">
@@ -2090,19 +2087,15 @@ function App() {
                             </button>
                           </div>
                         ) : (
-                          <div className={`grid gap-4 ${viewMode === 'detailed'
-                            ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
-                            : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10'
-                            }`}>
+                          <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10">
                             {catLinks.map(link => renderLinkCard(link))}
                             {/* Add Card Placeholder */}
                             <button
                               onClick={() => { setEditingLink(undefined); setPrefillLink({ categoryId: cat.id }); setIsModalOpen(true); }}
-                              className={`group flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 rounded-xl transition-all opacity-50 hover:opacity-100 ${viewMode === 'detailed' ? 'h-full min-h-[100px]' : 'h-full py-4'
-                                }`}
+                              className="group flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 rounded-xl transition-all opacity-50 hover:opacity-100 h-full py-4"
                             >
                               <Plus size={20} className="text-slate-400 dark:text-slate-500 group-hover:text-blue-500" />
-                              {viewMode === 'detailed' && <span className="text-xs text-slate-400 group-hover:text-blue-500">添加链接</span>}
+
                             </button>
                           </div>
                         )}
@@ -2121,7 +2114,7 @@ function App() {
             onDelete={editingLink ? handleDeleteLink : undefined}
             categories={categories}
             initialData={editingLink || (prefillLink as LinkItem)}
-            aiConfig={aiConfig}
+
             defaultCategoryId={selectedCategory !== 'all' ? selectedCategory : undefined}
           />
 
