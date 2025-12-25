@@ -20,7 +20,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { LinkItem, Category, DEFAULT_CATEGORIES, INITIAL_LINKS, WebDavConfig, SearchMode, ExternalSearchSource, SearchConfig, PasswordExpiryConfig } from './types';
+import { LinkItem, Category, DEFAULT_CATEGORIES, INITIAL_LINKS, WebDavConfig, SearchMode, ExternalSearchSource, SearchConfig, PasswordExpiryConfig, SiteConfig } from './types';
 import { parseBookmarks } from './services/bookmarkParser';
 import Icon from './components/Icon';
 import LinkModal from './components/LinkModal';
@@ -144,6 +144,9 @@ function App() {
     value: 1,
     unit: 'week'
   });
+
+  // Site Config State (网站自定义配置)
+  const [siteConfig, setSiteConfig] = useState<SiteConfig>({});
 
   // --- Helpers & Sync Logic ---
 
@@ -540,6 +543,28 @@ function App() {
           const websiteConfigData = await websiteConfigRes.json();
           if (websiteConfigData && websiteConfigData.passwordExpiry) {
             setPasswordExpiryConfig(websiteConfigData.passwordExpiry);
+          }
+        }
+
+        // 获取站点自定义配置
+        const siteConfigRes = await fetch('/api/storage?getConfig=site');
+        if (siteConfigRes.ok) {
+          const siteConfigData = await siteConfigRes.json();
+          if (siteConfigData) {
+            setSiteConfig(siteConfigData);
+            // 应用网站标题
+            if (siteConfigData.websiteTitle) {
+              document.title = siteConfigData.websiteTitle;
+            }
+            // 应用网站图标
+            if (siteConfigData.faviconUrl) {
+              const existingFavicons = document.querySelectorAll('link[rel="icon"]');
+              existingFavicons.forEach(favicon => favicon.remove());
+              const favicon = document.createElement('link');
+              favicon.rel = 'icon';
+              favicon.href = siteConfigData.faviconUrl;
+              document.head.appendChild(favicon);
+            }
           }
         }
       } catch (e) {
@@ -1145,6 +1170,49 @@ function App() {
         }
       } catch (error) {
         console.error('Error saving password expiry config:', error);
+      }
+    }
+  };
+
+  // 保存网站自定义配置
+  const handleSaveSiteConfig = async (config: SiteConfig) => {
+    setSiteConfig(config);
+
+    // 应用网站标题
+    if (config.websiteTitle) {
+      document.title = config.websiteTitle;
+    }
+
+    // 应用网站图标
+    if (config.faviconUrl) {
+      const existingFavicons = document.querySelectorAll('link[rel="icon"]');
+      existingFavicons.forEach(favicon => favicon.remove());
+      const favicon = document.createElement('link');
+      favicon.rel = 'icon';
+      favicon.href = config.faviconUrl;
+      document.head.appendChild(favicon);
+    }
+
+    // 保存到云端
+    if (authToken) {
+      try {
+        const response = await fetch('/api/storage', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-password': authToken
+          },
+          body: JSON.stringify({
+            saveConfig: 'site',
+            config: config
+          })
+        });
+
+        if (!response.ok) {
+          console.error('Failed to save site config');
+        }
+      } catch (error) {
+        console.error('Error saving site config:', error);
       }
     }
   };
@@ -1869,6 +1937,8 @@ function App() {
             onClose={() => setIsSettingsModalOpen(false)}
             passwordExpiryConfig={passwordExpiryConfig}
             onSavePasswordExpiry={handleSavePasswordExpiryConfig}
+            siteConfig={siteConfig}
+            onSaveSiteConfig={handleSaveSiteConfig}
           />
 
           <SearchConfigModal
@@ -1885,7 +1955,7 @@ function App() {
             <header className="h-16 px-4 lg:px-6 flex items-center justify-between bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shrink-0">
               <div className="flex items-center gap-6">
                 <span className="text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-                  CloudNav
+                  {siteConfig.navigationName || 'CloudNav'}
                 </span>
               </div>
 

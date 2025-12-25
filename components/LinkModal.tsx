@@ -15,7 +15,6 @@ interface LinkModalProps {
 const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete, categories, initialData, defaultCategoryId }) => {
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
-  const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState(categories[0]?.id || 'common');
   const [pinned, setPinned] = useState(false);
   const [icon, setIcon] = useState('');
@@ -47,14 +46,12 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
       if (initialData) {
         setTitle(initialData.title);
         setUrl(initialData.url);
-        setDescription(initialData.description || '');
         setCategoryId(initialData.categoryId);
         setPinned(initialData.pinned || false);
         setIcon(initialData.icon || '');
       } else {
         setTitle('');
         setUrl('');
-        setDescription('');
         const defaultCategory = defaultCategoryId && categories.find(cat => cat.id === defaultCategoryId);
         setCategoryId(defaultCategory ? defaultCategoryId : (categories[0]?.id || 'common'));
         setPinned(false);
@@ -123,7 +120,6 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
       title,
       url: finalUrl,
       icon,
-      description,
       categoryId,
       pinned
     });
@@ -137,7 +133,6 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
       setTitle('');
       setUrl('');
       setIcon('');
-      setDescription('');
       setPinned(false);
     } else {
       onClose();
@@ -216,8 +211,8 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
               type="button"
               onClick={() => setPinned(!pinned)}
               className={`flex items-center gap-1 px-2 py-1 rounded-md border transition-all ${pinned
-                  ? 'bg-blue-100 border-blue-200 text-blue-600 dark:bg-blue-900/40 dark:border-blue-800 dark:text-blue-300'
-                  : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400'
+                ? 'bg-blue-100 border-blue-200 text-blue-600 dark:bg-blue-900/40 dark:border-blue-800 dark:text-blue-300'
+                : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400'
                 }`}
               title={pinned ? "取消置顶" : "置顶"}
             >
@@ -318,15 +313,7 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1 dark:text-slate-300">描述 (选填)</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all h-20 resize-none"
-              placeholder="简短描述..."
-            />
-          </div>
+
 
           <div>
             <label className="block text-sm font-medium mb-1 dark:text-slate-300">分类</label>

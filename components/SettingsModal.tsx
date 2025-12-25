@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Wrench, Box, Copy, Check, Clock } from 'lucide-react';
-import { PasswordExpiryConfig } from '../types';
+import { X, Save, Wrench, Box, Copy, Check, Clock, Globe } from 'lucide-react';
+import { PasswordExpiryConfig, SiteConfig } from '../types';
 
 interface SettingsModalProps {
     isOpen: boolean;
     onClose: () => void;
     passwordExpiryConfig: PasswordExpiryConfig;
     onSavePasswordExpiry: (config: PasswordExpiryConfig) => void;
+    siteConfig: SiteConfig;
+    onSaveSiteConfig: (config: SiteConfig) => void;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
-    isOpen, onClose, passwordExpiryConfig, onSavePasswordExpiry
+    isOpen, onClose, passwordExpiryConfig, onSavePasswordExpiry, siteConfig, onSaveSiteConfig
 }) => {
-    const [activeTab, setActiveTab] = useState<'tools' | 'settings'>('tools');
+    const [activeTab, setActiveTab] = useState<'tools' | 'website' | 'settings'>('tools');
     const [localPasswordExpiryConfig, setLocalPasswordExpiryConfig] = useState<PasswordExpiryConfig>(passwordExpiryConfig);
+    const [localSiteConfig, setLocalSiteConfig] = useState<SiteConfig>(siteConfig);
 
     // Tools State
     const [password, setPassword] = useState('');
@@ -25,18 +28,24 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     useEffect(() => {
         if (isOpen) {
             setLocalPasswordExpiryConfig(passwordExpiryConfig);
+            setLocalSiteConfig(siteConfig);
             setDomain(window.location.origin);
             const storedToken = localStorage.getItem('cloudnav_auth_token');
             if (storedToken) setPassword(storedToken);
         }
-    }, [isOpen, passwordExpiryConfig]);
+    }, [isOpen, passwordExpiryConfig, siteConfig]);
 
     const handlePasswordExpiryChange = (key: keyof PasswordExpiryConfig, value: string | number) => {
         setLocalPasswordExpiryConfig(prev => ({ ...prev, [key]: value }));
     };
 
+    const handleSiteConfigChange = (key: keyof SiteConfig, value: string) => {
+        setLocalSiteConfig(prev => ({ ...prev, [key]: value }));
+    };
+
     const handleSave = () => {
         onSavePasswordExpiry(localPasswordExpiryConfig);
+        onSaveSiteConfig(localSiteConfig);
         onClose();
     };
 
@@ -161,6 +170,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                             <Wrench size={18} /> 扩展工具
                         </button>
                         <button
+                            onClick={() => setActiveTab('website')}
+                            className={`text-sm font-semibold flex items-center gap-2 pb-1 transition-colors ${activeTab === 'website' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' : 'text-slate-500 dark:text-slate-400'}`}
+                        >
+                            <Globe size={18} /> 网站设置
+                        </button>
+                        <button
                             onClick={() => setActiveTab('settings')}
                             className={`text-sm font-semibold flex items-center gap-2 pb-1 transition-colors ${activeTab === 'settings' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' : 'text-slate-500 dark:text-slate-400'}`}
                         >
@@ -231,6 +246,54 @@ document.addEventListener('DOMContentLoaded', async () => {
                         </div>
                     )}
 
+                    {activeTab === 'website' && (
+                        <div className="space-y-6">
+                            <div>
+                                <h4 className="font-bold dark:text-white mb-3 text-sm flex items-center gap-2">
+                                    <Globe size={16} /> 网站自定义
+                                </h4>
+                                <p className="text-xs text-slate-500 mb-4">
+                                    自定义网站的标题、导航栏名称和图标。
+                                </p>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-500 mb-1">网站标题</label>
+                                        <input
+                                            type="text"
+                                            value={localSiteConfig.websiteTitle || ''}
+                                            onChange={(e) => handleSiteConfigChange('websiteTitle', e.target.value)}
+                                            placeholder="CloudNav"
+                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                        />
+                                        <p className="text-xs text-slate-400 mt-1">浏览器标签页显示的名称</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-500 mb-1">导航栏名称</label>
+                                        <input
+                                            type="text"
+                                            value={localSiteConfig.navigationName || ''}
+                                            onChange={(e) => handleSiteConfigChange('navigationName', e.target.value)}
+                                            placeholder="CloudNav"
+                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                        />
+                                        <p className="text-xs text-slate-400 mt-1">页面左上角显示的名称</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-500 mb-1">网站图标 URL</label>
+                                        <input
+                                            type="url"
+                                            value={localSiteConfig.faviconUrl || ''}
+                                            onChange={(e) => handleSiteConfigChange('faviconUrl', e.target.value)}
+                                            placeholder="https://example.com/favicon.ico"
+                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                        />
+                                        <p className="text-xs text-slate-400 mt-1">浏览器标签页显示的图标</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {activeTab === 'settings' && (
                         <div className="space-y-6">
                             <div>
@@ -271,7 +334,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     )}
                 </div>
 
-                {activeTab === 'settings' && (
+                {(activeTab === 'settings' || activeTab === 'website') && (
                     <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3 shrink-0">
                         <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg">取消</button>
                         <button onClick={handleSave} className="px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-lg flex items-center gap-2 font-medium">

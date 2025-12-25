@@ -46,6 +46,13 @@ export interface WebsiteConfig {
   passwordExpiry: PasswordExpiryConfig;
 }
 
+// 站点自定义配置
+export interface SiteConfig {
+  websiteTitle?: string;      // 网站标题
+  navigationName?: string;    // 导航栏名称
+  faviconUrl?: string;        // 网站图标URL
+}
+
 // 搜索模式类型
 export type SearchMode = 'internal' | 'external';
 
