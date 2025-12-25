@@ -30,17 +30,7 @@ export interface WebDavConfig {
   enabled: boolean;
 }
 
-export type AIProvider = 'gemini' | 'openai';
 
-export interface AIConfig {
-  provider: AIProvider;
-  apiKey: string;
-  baseUrl: string;
-  model: string;
-  websiteTitle?: string; // 网站标题 (浏览器标签)
-  faviconUrl?: string; // 网站图标URL
-  navigationName?: string;
-}
 
 // 密码过期时间单位
 export type PasswordExpiryUnit = 'day' | 'week' | 'month' | 'year' | 'permanent';

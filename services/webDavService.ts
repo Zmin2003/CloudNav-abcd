@@ -1,5 +1,5 @@
 
-import { Category, LinkItem, WebDavConfig, SearchConfig, AIConfig } from "../types";
+import { Category, LinkItem, WebDavConfig, SearchConfig } from "../types";
 
 // Helper to call our Cloudflare Proxy
 // This solves the CORS issue by delegating the request to the backend
@@ -14,12 +14,12 @@ const callWebDavProxy = async (operation: 'check' | 'upload' | 'download', confi
                 payload
             })
         });
-        
+
         if (!response.ok) {
             console.error(`WebDAV Proxy Error: ${response.status}`);
             return null;
         }
-        
+
         return await response.json();
     } catch (e) {
         console.error("WebDAV Proxy Network Error", e);
@@ -33,17 +33,17 @@ export const checkWebDavConnection = async (config: WebDavConfig): Promise<boole
     return result?.success === true;
 };
 
-export const uploadBackup = async (config: WebDavConfig, data: { links: LinkItem[], categories: Category[], searchConfig?: SearchConfig, aiConfig?: AIConfig }): Promise<boolean> => {
+export const uploadBackup = async (config: WebDavConfig, data: { links: LinkItem[], categories: Category[], searchConfig?: SearchConfig }): Promise<boolean> => {
     const result = await callWebDavProxy('upload', config, data);
     return result?.success === true;
 };
 
-export const downloadBackup = async (config: WebDavConfig): Promise<{ links: LinkItem[], categories: Category[], searchConfig?: SearchConfig, aiConfig?: AIConfig } | null> => {
+export const downloadBackup = async (config: WebDavConfig): Promise<{ links: LinkItem[], categories: Category[], searchConfig?: SearchConfig } | null> => {
     const result = await callWebDavProxy('download', config);
-    
+
     // Check if the result looks like valid backup data
     if (result && Array.isArray(result.links) && Array.isArray(result.categories)) {
-        return result as { links: LinkItem[], categories: Category[], searchConfig?: SearchConfig, aiConfig?: AIConfig };
+        return result as { links: LinkItem[], categories: Category[], searchConfig?: SearchConfig };
     }
     return null;
 };

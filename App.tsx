@@ -20,7 +20,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { LinkItem, Category, DEFAULT_CATEGORIES, INITIAL_LINKS, WebDavConfig, AIConfig, SearchMode, ExternalSearchSource, SearchConfig, PasswordExpiryConfig } from './types';
+import { LinkItem, Category, DEFAULT_CATEGORIES, INITIAL_LINKS, WebDavConfig, SearchMode, ExternalSearchSource, SearchConfig, PasswordExpiryConfig } from './types';
 import { parseBookmarks } from './services/bookmarkParser';
 import Icon from './components/Icon';
 import LinkModal from './components/LinkModal';
@@ -41,7 +41,7 @@ const GITHUB_REPO_URL = 'https://github.com/aabacada/CloudNav-abcd';
 const LOCAL_STORAGE_KEY = 'cloudnav_data_cache';
 const AUTH_KEY = 'cloudnav_auth_token';
 const WEBDAV_CONFIG_KEY = 'cloudnav_webdav_config';
-const AI_CONFIG_KEY = 'cloudnav_ai_config';
+
 const SEARCH_CONFIG_KEY = 'cloudnav_search_config';
 
 function App() {
@@ -68,23 +68,7 @@ function App() {
     enabled: false
   });
 
-  // AI Config State
-  const [aiConfig, setAiConfig] = useState<AIConfig>(() => {
-    const saved = localStorage.getItem(AI_CONFIG_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) { }
-    }
-    return {
-      provider: 'gemini',
-      // Try to use injected env if available, else empty.
-      // Note: In client-side build process.env might need specific config, but we leave it as fallback.
-      apiKey: process.env.API_KEY || '',
-      baseUrl: '',
-      model: 'gemini-2.5-flash'
-    };
-  });
+
 
   // Modals
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -115,12 +99,7 @@ function App() {
   const [isBatchEditMode, setIsBatchEditMode] = useState(false); // 是否处于批量编辑模式
   const [selectedLinks, setSelectedLinks] = useState<Set<string>>(new Set()); // 选中的链接ID集合
 
-  // View Mode State
-  const [viewMode, setViewMode] = useState<'compact' | 'detailed'>(() => {
-    // 从本地存储加载用户偏好设置
-    const savedViewMode = localStorage.getItem('cloudnav_view_mode');
-    return savedViewMode === 'detailed' ? 'detailed' : 'compact';
-  }); // 视图模式：compact（简约版）或 detailed（详情版）
+
 
   // Context Menu State
   const [contextMenu, setContextMenu] = useState<{
@@ -668,24 +647,7 @@ function App() {
     initData();
   }, []);
 
-  // Update page title and favicon when AI config changes
-  useEffect(() => {
-    if (aiConfig.websiteTitle) {
-      document.title = aiConfig.websiteTitle;
-    }
 
-    if (aiConfig.faviconUrl) {
-      // Remove existing favicon links
-      const existingFavicons = document.querySelectorAll('link[rel="icon"]');
-      existingFavicons.forEach(favicon => favicon.remove());
-
-      // Add new favicon
-      const favicon = document.createElement('link');
-      favicon.rel = 'icon';
-      favicon.href = aiConfig.faviconUrl;
-      document.head.appendChild(favicon);
-    }
-  }, [aiConfig.websiteTitle, aiConfig.faviconUrl]);
 
   const toggleTheme = () => {
     const newMode = !darkMode;
@@ -699,11 +661,7 @@ function App() {
     }
   };
 
-  // 视图模式切换处理函数
-  const handleViewModeChange = (mode: 'compact' | 'detailed') => {
-    setViewMode(mode);
-    localStorage.setItem('cloudnav_view_mode', mode);
-  };
+
 
   // --- Batch Edit Functions ---
   const toggleBatchEditMode = () => {
@@ -867,19 +825,7 @@ function App() {
           syncToCloud(links, categories, password);
         }
 
-        // 登录成功后，从KV空间加载AI配置
-        try {
-          const aiConfigRes = await fetch('/api/storage?getConfig=ai');
-          if (aiConfigRes.ok) {
-            const aiConfigData = await aiConfigRes.json();
-            if (aiConfigData && Object.keys(aiConfigData).length > 0) {
-              setAiConfig(aiConfigData);
-              localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(aiConfigData));
-            }
-          }
-        } catch (e) {
-          console.warn("Failed to fetch AI config after login.", e);
-        }
+
 
         return true;
       }
@@ -1203,61 +1149,7 @@ function App() {
     }
   };
 
-  const handleSaveAIConfig = async (config: AIConfig) => {
-    setAiConfig(config);
-    localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(config));
 
-    // 同时保存到KV空间
-    if (authToken) {
-      try {
-        const response = await fetch('/api/storage', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-auth-password': authToken
-          },
-          body: JSON.stringify({
-            saveConfig: 'ai',
-            config: config
-          })
-        });
-
-        if (!response.ok) {
-          console.error('Failed to save AI config to KV:', response.statusText);
-        }
-      } catch (error) {
-        console.error('Error saving AI config to KV:', error);
-      }
-    }
-  };
-
-  const handleRestoreAIConfig = async (config: AIConfig) => {
-    setAiConfig(config);
-    localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(config));
-
-    // 同时保存到KV空间
-    if (authToken) {
-      try {
-        const response = await fetch('/api/storage', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-auth-password': authToken
-          },
-          body: JSON.stringify({
-            saveConfig: 'ai',
-            config: config
-          })
-        });
-
-        if (!response.ok) {
-          console.error('Failed to restore AI config to KV:', response.statusText);
-        }
-      } catch (error) {
-        console.error('Error restoring AI config to KV:', error);
-      }
-    }
-  };
 
   // --- Category Management & Security ---
 
@@ -1770,8 +1662,8 @@ function App() {
   const renderLinkCard = (link: LinkItem) => {
     const isSelected = selectedLinks.has(link.id);
 
-    // 根据视图模式决定卡片样式
-    const isDetailedView = viewMode === 'detailed';
+    // 固定使用简约模式
+    const isDetailedView = false;
 
     return (
       <div
@@ -1961,8 +1853,6 @@ function App() {
             onSaveWebDavConfig={handleSaveWebDavConfig}
             searchConfig={{ mode: searchMode, externalSources: externalSearchSources }}
             onRestoreSearchConfig={handleRestoreSearchConfig}
-            aiConfig={aiConfig}
-            onRestoreAIConfig={handleRestoreAIConfig}
           />
 
           <ImportModal
@@ -1972,20 +1862,13 @@ function App() {
             categories={categories}
             onImport={handleImportConfirm}
             onImportSearchConfig={handleRestoreSearchConfig}
-            onImportAIConfig={handleRestoreAIConfig}
           />
 
           <SettingsModal
             isOpen={isSettingsModalOpen}
             onClose={() => setIsSettingsModalOpen(false)}
-            config={aiConfig}
-            onSave={handleSaveAIConfig}
-            links={links}
-            onUpdateLinks={(newLinks) => updateData(newLinks, categories)}
             passwordExpiryConfig={passwordExpiryConfig}
             onSavePasswordExpiry={handleSavePasswordExpiryConfig}
-            viewMode={viewMode}
-            onViewModeChange={handleViewModeChange}
           />
 
           <SearchConfigModal
