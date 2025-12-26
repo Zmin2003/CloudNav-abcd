@@ -2081,8 +2081,8 @@ function App() {
                 </div>
               </section>
 
-              {/* 搜索结果 (如果正在搜索) */}
-              {searchQuery.trim() ? (
+              {/* 搜索结果 (如果正在搜索且有结果) */}
+              {searchQuery.trim() && displayedLinks.length > 0 ? (
                 <section>
                   <div className="flex items-center gap-2 mb-4">
                     <Search className="text-blue-500" size={24} />
@@ -2091,12 +2091,12 @@ function App() {
                   </div>
                   <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10">
                     {displayedLinks.map(link => renderLinkCard(link))}
-                    {displayedLinks.length > 0 && selectedCategory !== 'all' && (
-                      <div className="col-span-full py-12 text-center text-slate-500">
-                        <p>没有找到匹配的链接</p>
-                      </div>
-                    )}
                   </div>
+                </section>
+              ) : searchQuery.trim() && displayedLinks.length === 0 ? (
+                <section className="py-12 text-center">
+                  <Search className="mx-auto text-slate-300 dark:text-slate-600 mb-4" size={48} />
+                  <p className="text-slate-500 dark:text-slate-400">没有找到匹配的链接</p>
                 </section>
               ) : (
                 <>
