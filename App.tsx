@@ -1838,26 +1838,6 @@ function App() {
           </a>
         )}
 
-        {/* Hover Actions (Absolute Right) - 在批量编辑模式下隐藏 */}
-        {!isBatchEditMode && (
-          <div className={`flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-md p-1 absolute ${isDetailedView ? 'top-3 right-3' : 'top-1/2 -translate-y-1/2 right-2'
-            }`}>
-            <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingLink(link); setIsModalOpen(true); }}
-              className="p-1 text-slate-400 hover:text-blue-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md"
-              title="编辑"
-            >
-              <Edit2 size={16} />
-            </button>
-            <button
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteLink(link.id); }}
-              className="p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md"
-              title="删除"
-            >
-              <Trash2 size={16} />
-            </button>
-          </div>
-        )}
       </div>
     );
   };
@@ -2153,14 +2133,6 @@ function App() {
                         ) : (
                           <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10">
                             {catLinks.map(link => renderLinkCard(link))}
-                            {/* Add Card Placeholder */}
-                            <button
-                              onClick={() => { setEditingLink(undefined); setPrefillLink({ categoryId: cat.id }); setIsModalOpen(true); }}
-                              className="group flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 rounded-xl transition-all opacity-50 hover:opacity-100 h-full py-4"
-                            >
-                              <Plus size={20} className="text-slate-400 dark:text-slate-500 group-hover:text-blue-500" />
-
-                            </button>
                           </div>
                         )}
                       </section>
