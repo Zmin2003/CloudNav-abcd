@@ -1,0 +1,91 @@
+export interface LinkItem {
+  id: string;
+  title: string;
+  url: string;
+  icon?: string;
+  description?: string;
+  categoryId: string;
+  createdAt: number;
+  pinned?: boolean; // New field for pinning
+  pinnedOrder?: number; // Field for pinned link sorting order
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  icon: string; // Lucide icon name or emoji
+  password?: string; // Optional password for category protection
+}
+
+export interface AppState {
+  links: LinkItem[];
+  categories: Category[];
+  darkMode: boolean;
+}
+
+export interface WebDavConfig {
+  url: string;
+  username: string;
+  password: string;
+  enabled: boolean;
+}
+
+
+
+// 密码过期时间单位
+export type PasswordExpiryUnit = 'day' | 'week' | 'month' | 'year' | 'permanent';
+
+// 密码过期时间配置
+export interface PasswordExpiryConfig {
+  value: number; // 数值
+  unit: PasswordExpiryUnit; // 单位
+}
+
+// 网站配置
+export interface WebsiteConfig {
+  passwordExpiry: PasswordExpiryConfig;
+}
+
+// 站点自定义配置
+export interface SiteConfig {
+  websiteTitle?: string;      // 网站标题
+  navigationName?: string;    // 导航栏名称
+  faviconUrl?: string;        // 网站图标URL
+}
+
+// 搜索模式类型
+export type SearchMode = 'internal' | 'external';
+
+// 外部搜索源配置
+export interface ExternalSearchSource {
+  id: string;
+  name: string;
+  url: string;
+  icon?: string;
+  enabled: boolean;
+  createdAt: number;
+}
+
+// 搜索配置
+export interface SearchConfig {
+  mode: SearchMode;
+  externalSources: ExternalSearchSource[];
+  selectedSource?: ExternalSearchSource | null; // 选中的搜索源
+}
+
+export const DEFAULT_CATEGORIES: Category[] = [
+  { id: 'common', name: '常用推荐', icon: 'Star' },
+  { id: 'dev', name: '开发工具', icon: 'Code' },
+  { id: 'design', name: '设计资源', icon: 'Palette' },
+  { id: 'read', name: '阅读资讯', icon: 'BookOpen' },
+  { id: 'ent', name: '休闲娱乐', icon: 'Gamepad2' },
+  { id: 'ai', name: '人工智能', icon: 'Bot' },
+];
+
+export const INITIAL_LINKS: LinkItem[] = [
+  { id: '1', title: 'GitHub', url: 'https://github.com', categoryId: 'dev', createdAt: Date.now(), description: '代码托管平台', pinned: true },
+  { id: '2', title: 'React', url: 'https://react.dev', categoryId: 'dev', createdAt: Date.now(), description: '构建Web用户界面的库' },
+  { id: '3', title: 'Tailwind CSS', url: 'https://tailwindcss.com', categoryId: 'design', createdAt: Date.now(), description: '原子化CSS框架' },
+  { id: '4', title: 'ChatGPT', url: 'https://chat.openai.com', categoryId: 'ai', createdAt: Date.now(), description: 'OpenAI聊天机器人', pinned: true },
+  { id: '5', title: 'Gemini', url: 'https://gemini.google.com', categoryId: 'ai', createdAt: Date.now(), description: 'Google DeepMind AI' },
+];
