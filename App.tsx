@@ -743,7 +743,9 @@ function App() {
 
         // 登录成功后，从服务器获取数据
         try {
-          const res = await fetch('/api/storage');
+          const res = await fetch('/api/storage', {
+            headers: { 'x-auth-password': password }
+          });
           if (res.ok) {
             const data = await res.json();
             // 如果服务器有数据，使用服务器数据
