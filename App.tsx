@@ -351,86 +351,63 @@ function App() {
   };
 
   // 加载链接图标缓存
+  const normalizeDomain = (rawUrl?: string): string | null => {
+    if (!rawUrl) return null;
+    try {
+      const url = rawUrl.startsWith('http://') || rawUrl.startsWith('https://')
+        ? rawUrl
+        : `https://${rawUrl}`;
+      return new URL(url).hostname;
+    } catch {
+      return null;
+    }
+  };
+
+  const fetchCachedFavicon = async (domain: string): Promise<string | null> => {
+    try {
+      const response = await fetch(`/api/storage?getConfig=favicon&domain=${encodeURIComponent(domain)}`);
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.cached && data.icon ? data.icon : null;
+    } catch {
+      return null;
+    }
+  };
+
+  // 加载链接图标缓存
   const loadLinkIcons = async (linksToLoad: LinkItem[]) => {
-    if (!authToken) return; // 只有在已登录状态下才加载图标缓存
+    if (!authToken || linksToLoad.length === 0) return;
 
-    const updatedLinks = [...linksToLoad];
-    const domainsToFetch: string[] = [];
+    const domains = Array.from(new Set(
+      linksToLoad
+        .map(link => normalizeDomain(link.url))
+        .filter((domain): domain is string => !!domain)
+    ));
 
-    // 收集所有链接的域名（包括已有图标的链接）
-    for (const link of updatedLinks) {
-      if (link.url) {
-        try {
-          let domain = link.url;
-          if (!link.url.startsWith('http://') && !link.url.startsWith('https://')) {
-            domain = 'https://' + link.url;
-          }
+    if (domains.length === 0) return;
 
-          if (domain.startsWith('http://') || domain.startsWith('https://')) {
-            const urlObj = new URL(domain);
-            domain = urlObj.hostname;
-            domainsToFetch.push(domain);
-          }
-        } catch (e) {
-          console.error("Failed to parse URL for icon loading", e);
-        }
+    const iconByDomain = new Map<string, string>();
+    for (const domain of domains) {
+      const icon = await fetchCachedFavicon(domain);
+      if (icon) iconByDomain.set(domain, icon);
+    }
+
+    if (iconByDomain.size === 0) return;
+
+    const updatedLinks = linksToLoad.map(link => {
+      const domain = normalizeDomain(link.url);
+      if (!domain) return link;
+
+      const cachedIcon = iconByDomain.get(domain);
+      if (!cachedIcon) return link;
+
+      if (!link.icon || link.icon.includes('faviconextractor.com') || !cachedIcon.includes('faviconextractor.com')) {
+        return { ...link, icon: cachedIcon };
       }
-    }
+      return link;
+    });
 
-    // 批量获取图标
-    if (domainsToFetch.length > 0) {
-      const iconPromises = domainsToFetch.map(async (domain) => {
-        try {
-          const response = await fetch(`/api/storage?getConfig=favicon&domain=${encodeURIComponent(domain)}`);
-          if (response.ok) {
-            const data = await response.json();
-            if (data.cached && data.icon) {
-              return { domain, icon: data.icon };
-            }
-          }
-        } catch (error) {
-          console.log(`Failed to fetch cached icon for ${domain}`, error);
-        }
-        return null;
-      });
-
-      const iconResults = await Promise.all(iconPromises);
-
-      // 更新链接的图标
-      iconResults.forEach(result => {
-        if (result) {
-          const linkToUpdate = updatedLinks.find(link => {
-            if (!link.url) return false;
-            try {
-              let domain = link.url;
-              if (!link.url.startsWith('http://') && !link.url.startsWith('https://')) {
-                domain = 'https://' + link.url;
-              }
-
-              if (domain.startsWith('http://') || domain.startsWith('https://')) {
-                const urlObj = new URL(domain);
-                return urlObj.hostname === result.domain;
-              }
-            } catch (e) {
-              return false;
-            }
-            return false;
-          });
-
-          if (linkToUpdate) {
-            // 只有当链接没有图标，或者当前图标是faviconextractor.com生成的，或者缓存中的图标是自定义图标时才更新
-            if (!linkToUpdate.icon ||
-              linkToUpdate.icon.includes('faviconextractor.com') ||
-              !result.icon.includes('faviconextractor.com')) {
-              linkToUpdate.icon = result.icon;
-            }
-          }
-        }
-      });
-
-      // 更新状态
-      setLinks(updatedLinks);
-    }
+    setLinks(updatedLinks);
   };
 
   // --- Effects ---
