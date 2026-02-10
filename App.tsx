@@ -89,6 +89,7 @@ function App() {
   // Sync State
   const [syncStatus, setSyncStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [authToken, setAuthToken] = useState<string>('');
+  const [appDataVersion, setAppDataVersion] = useState<number>(1);
   const [requiresAuth, setRequiresAuth] = useState<boolean | null>(null); // null表示未检查，true表示需要认证，false表示不需要
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const isAuthenticated = !!authToken;
@@ -209,7 +210,11 @@ function App() {
           'Content-Type': 'application/json',
           'x-auth-password': token
         },
-        body: JSON.stringify({ links: newLinks, categories: newCategories })
+        body: JSON.stringify({
+          links: newLinks,
+          categories: newCategories,
+          baseVersion: appDataVersion
+        })
       });
 
       if (response.status === 401) {
@@ -231,7 +236,22 @@ function App() {
         return false;
       }
 
+      if (response.status === 409) {
+        setSyncStatus('error');
+        alert('检测到数据冲突：云端数据已更新，请刷新页面后重试。');
+        return false;
+      }
+
       if (!response.ok) throw new Error('Network response was not ok');
+
+      try {
+        const result = await response.json();
+        if (typeof result?.version === 'number') {
+          setAppDataVersion(result.version);
+        }
+      } catch {
+        // ignore
+      }
 
       setSyncStatus('saved');
       setTimeout(() => setSyncStatus('idle'), 2000);
@@ -452,7 +472,8 @@ function App() {
     const initData = async () => {
       // 首先检查是否需要认证
       try {
-        const authRes = await fetch('/api/storage?checkAuth=true');
+        const authHeaders: Record<string, string> = savedToken ? { 'x-auth-password': savedToken } : {};
+        const authRes = await fetch('/api/storage?checkAuth=true', { headers: authHeaders });
         if (authRes.ok) {
           const authData = await authRes.json();
           setRequiresAuth(authData.requiresAuth);
@@ -472,14 +493,20 @@ function App() {
       let hasCloudData = false;
       try {
         const res = await fetch('/api/storage', {
-          headers: authToken ? { 'x-auth-password': authToken } : {}
+          headers: savedToken ? { 'x-auth-password': savedToken } : {}
         });
         if (res.ok) {
           const data = await res.json();
-          if (data.links && data.links.length > 0) {
+          if (Array.isArray(data.links)) {
             setLinks(data.links);
             setCategories(data.categories || DEFAULT_CATEGORIES);
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
+              links: data.links,
+              categories: data.categories || DEFAULT_CATEGORIES
+            }));
+            if (typeof data.version === 'number') {
+              setAppDataVersion(data.version);
+            }
 
             // 加载链接图标缓存
             loadLinkIcons(data.links);
@@ -489,7 +516,7 @@ function App() {
           // 如果返回401，可能是密码过期，清除本地token并要求重新登录
           const errorData = await res.json();
           if (errorData.error && errorData.error.includes('过期')) {
-            setAuthToken(null);
+            setAuthToken('');
             localStorage.removeItem(AUTH_KEY);
             setIsAuthOpen(true);
             setIsCheckingAuth(false);
@@ -707,7 +734,7 @@ function App() {
           // 如果设置了过期时间且已过期
           if (expiryTimeMs > 0 && timeDiff > expiryTimeMs) {
             // 密码已过期，清除认证信息并提示用户
-            setAuthToken(null);
+            setAuthToken('');
             localStorage.removeItem(AUTH_KEY);
             setIsAuthOpen(true);
             alert('您的密码已过期，请重新登录');
@@ -761,9 +788,9 @@ function App() {
   };
 
   const handleLogout = () => {
-    setAuthToken(null);
+    setAuthToken('');
     localStorage.removeItem(AUTH_KEY);
-    setSyncStatus('offline');
+    setSyncStatus('idle');
     // 退出后重新加载本地数据
     loadFromLocal();
   };
