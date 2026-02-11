@@ -13,7 +13,7 @@ interface SortableLinkCardProps {
  * 可排序的链接卡片组件
  * 用于拖拽排序场景
  */
-export const SortableLinkCard: React.FC<SortableLinkCardProps> = ({
+export const SortableLinkCard: React.FC<SortableLinkCardProps> = React.memo(({
   link,
   isSortingMode,
   isSortingPinned,
@@ -109,6 +109,8 @@ export const SortableLinkCard: React.FC<SortableLinkCardProps> = ({
       </div>
     </div>
   );
-};
+});
+
+SortableLinkCard.displayName = 'SortableLinkCard';
 
 export default SortableLinkCard;

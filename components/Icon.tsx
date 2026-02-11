@@ -214,9 +214,11 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Bot,
 };
 
-const Icon: React.FC<IconProps> = ({ name, size = 20, className }) => {
+const Icon: React.FC<IconProps> = React.memo(({ name, size = 20, className }) => {
   const IconComponent = ICON_MAP[name] || Link;
   return <IconComponent size={size} className={className} />;
-};
+});
+
+Icon.displayName = 'Icon';
 
 export default Icon;

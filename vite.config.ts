@@ -14,15 +14,17 @@ export default defineConfig({
     }
   },
   build: {
+    // Target modern browsers for smaller output
+    target: 'es2020',
+    // Enable CSS code splitting
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          // React 核心库
-          'react-vendor': ['react', 'react-dom'],
+        manualChunks(id) {
           // 拖拽排序库
-          'dnd-kit': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+          if (id.includes('@dnd-kit')) return 'dnd-kit';
           // 图标库
-          'lucide': ['lucide-react'],
+          if (id.includes('lucide-react')) return 'lucide';
         }
       }
     }

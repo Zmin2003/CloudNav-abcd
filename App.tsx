@@ -1,11 +1,10 @@
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Search, Plus, Trash2, Edit2, X, ChevronRight, ChevronDown, Check, GripVertical, Moon, Sun, Monitor, Menu, MoreVertical, LogOut, Settings, Upload, Download, RefreshCw, AlertCircle, ExternalLink, Shield, Key, Pin, LayoutGrid, ArrowRight, Lock, Icon as LucideIcon } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
+import { Search, Plus, Settings, Upload, ArrowRight, Lock } from 'lucide-react';
 import {
   DndContext,
   DragEndEvent,
   closestCenter,
-  closestCorners,
   PointerSensor,
   useSensor,
   useSensors,
@@ -15,27 +14,25 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
   rectSortingStrategy,
-  useSortable,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { LinkItem, Category, DEFAULT_CATEGORIES, INITIAL_LINKS, WebDavConfig, SearchMode, ExternalSearchSource, SearchConfig, PasswordExpiryConfig, SiteConfig } from './types';
-import { parseBookmarks } from './services/bookmarkParser';
-import { createSearchSources, STORAGE_KEYS, GITHUB_REPO_URL } from './constants';
+import { createSearchSources, STORAGE_KEYS } from './constants';
 import Icon from './components/Icon';
-import LinkModal from './components/LinkModal';
 import AuthModal from './components/AuthModal';
-import CategoryManagerModal from './components/CategoryManagerModal';
-import BackupModal from './components/BackupModal';
-import CategoryAuthModal from './components/CategoryAuthModal';
-import ImportModal from './components/ImportModal';
-import SettingsModal from './components/SettingsModal';
-import SearchConfigModal from './components/SearchConfigModal';
 import ContextMenu from './components/ContextMenu';
-import QRCodeModal from './components/QRCodeModal';
 import SortableLinkCard from './components/SortableLinkCard';
 import ErrorBoundary from './components/ErrorBoundary';
+
+// Lazy-loaded modals (code-splitting: only loaded when opened)
+const LinkModal = lazy(() => import('./components/LinkModal'));
+const CategoryManagerModal = lazy(() => import('./components/CategoryManagerModal'));
+const BackupModal = lazy(() => import('./components/BackupModal'));
+const CategoryAuthModal = lazy(() => import('./components/CategoryAuthModal'));
+const ImportModal = lazy(() => import('./components/ImportModal'));
+const SettingsModal = lazy(() => import('./components/SettingsModal'));
+const SearchConfigModal = lazy(() => import('./components/SearchConfigModal'));
+const QRCodeModal = lazy(() => import('./components/QRCodeModal'));
 
 // --- 配置项 ---
 // 使用常量模块中的配置
@@ -44,7 +41,18 @@ const LOCAL_STORAGE_KEY = STORAGE_KEYS.LOCAL_DATA;
 const AUTH_KEY = STORAGE_KEYS.AUTH_TOKEN;
 const WEBDAV_CONFIG_KEY = STORAGE_KEYS.WEBDAV_CONFIG;
 
-const SEARCH_CONFIG_KEY = STORAGE_KEYS.SEARCH_CONFIG;
+// Suspense fallback for lazy-loaded modals
+const ModalFallback = () => null;
+
+// Debounce hook for search input
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delayMs);
+    return () => clearTimeout(timer);
+  }, [value, delayMs]);
+  return debounced;
+}
 
 function App() {
   // --- State ---
@@ -52,6 +60,7 @@ function App() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 150);
   const [darkMode, setDarkMode] = useState(false);
 
   // Search Mode State
@@ -278,7 +287,7 @@ function App() {
   };
 
   // --- Context Menu Functions ---
-  const handleContextMenu = (event: React.MouseEvent, link: LinkItem) => {
+  const handleContextMenu = useCallback((event: React.MouseEvent, link: LinkItem) => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -290,15 +299,15 @@ function App() {
       position: { x: event.clientX, y: event.clientY },
       link: link
     });
-  };
+  }, [isBatchEditMode]);
 
-  const closeContextMenu = () => {
+  const closeContextMenu = useCallback(() => {
     setContextMenu({
       isOpen: false,
       position: { x: 0, y: 0 },
       link: null
     });
-  };
+  }, []);
 
   const copyLinkToClipboard = () => {
     if (!contextMenu.link) return;
@@ -407,9 +416,16 @@ function App() {
     if (domains.length === 0) return;
 
     const iconByDomain = new Map<string, string>();
-    for (const domain of domains) {
-      const icon = await fetchCachedFavicon(domain);
-      if (icon) iconByDomain.set(domain, icon);
+    const results = await Promise.allSettled(
+      domains.map(async (domain) => {
+        const icon = await fetchCachedFavicon(domain);
+        return { domain, icon };
+      })
+    );
+    for (const result of results) {
+      if (result.status === 'fulfilled' && result.value.icon) {
+        iconByDomain.set(result.value.domain, result.value.icon);
+      }
     }
 
     if (iconByDomain.size === 0) return;
@@ -528,8 +544,14 @@ function App() {
       }
 
       // 无论是否有云端数据，都尝试从KV空间加载搜索配置和网站配置
+      // 并行请求所有配置，避免瀑布式加载
       try {
-        const searchConfigRes = await fetch('/api/storage?getConfig=search');
+        const [searchConfigRes, websiteConfigRes, siteConfigRes] = await Promise.all([
+          fetch('/api/storage?getConfig=search'),
+          fetch('/api/storage?getConfig=website'),
+          fetch('/api/storage?getConfig=site'),
+        ]);
+
         if (searchConfigRes.ok) {
           const searchConfigData = await searchConfigRes.json();
           // 检查搜索配置是否有效（包含必要的字段）
@@ -543,8 +565,6 @@ function App() {
           }
         }
 
-        // 获取网站配置（包括密码过期时间设置）
-        const websiteConfigRes = await fetch('/api/storage?getConfig=website');
         if (websiteConfigRes.ok) {
           const websiteConfigData = await websiteConfigRes.json();
           if (websiteConfigData && websiteConfigData.passwordExpiry) {
@@ -552,8 +572,6 @@ function App() {
           }
         }
 
-        // 获取站点自定义配置
-        const siteConfigRes = await fetch('/api/storage?getConfig=site');
         if (siteConfigRes.ok) {
           const siteConfigData = await siteConfigRes.json();
           if (siteConfigData) {
@@ -599,7 +617,7 @@ function App() {
 
 
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     const newMode = !darkMode;
     setDarkMode(newMode);
     if (newMode) {
@@ -609,17 +627,17 @@ function App() {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('theme', 'light');
     }
-  };
+  }, [darkMode]);
 
 
 
   // --- Batch Edit Functions ---
-  const toggleBatchEditMode = () => {
+  const toggleBatchEditMode = useCallback(() => {
     setIsBatchEditMode(!isBatchEditMode);
     setSelectedLinks(new Set()); // 退出批量编辑模式时清空选中项
-  };
+  }, [isBatchEditMode]);
 
-  const toggleLinkSelection = (linkId: string) => {
+  const toggleLinkSelection = useCallback((linkId: string) => {
     setSelectedLinks(prev => {
       const newSet = new Set(prev);
       if (newSet.has(linkId)) {
@@ -629,7 +647,7 @@ function App() {
       }
       return newSet;
     });
-  };
+  }, []);
 
   const handleBatchDelete = () => {
     if (!authToken) { setIsAuthOpen(true); return; }
@@ -929,7 +947,7 @@ function App() {
   };
 
   // 拖拽结束事件处理函数
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -939,14 +957,14 @@ function App() {
 
       if (activeIndex !== -1 && overIndex !== -1) {
         // 直接重新排序links数组
-        const updatedLinks = arrayMove(links, activeIndex, overIndex);
+        const updatedLinks = arrayMove(links, activeIndex, overIndex) as LinkItem[];
         updateData(updatedLinks, categories);
       }
     }
-  };
+  }, [links, categories]);
 
   // 置顶链接拖拽结束事件处理函数
-  const handlePinnedDragEnd = (event: DragEndEvent) => {
+  const handlePinnedDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -959,7 +977,7 @@ function App() {
 
       if (activeIndex !== -1 && overIndex !== -1) {
         // 重新排序置顶链接
-        const reorderedPinnedLinks = arrayMove(pinnedLinksList, activeIndex, overIndex);
+        const reorderedPinnedLinks = arrayMove(pinnedLinksList, activeIndex, overIndex) as LinkItem[];
 
         // 创建一个映射，存储每个置顶链接的新pinnedOrder
         const pinnedOrderMap = new Map<string, number>();
@@ -997,7 +1015,7 @@ function App() {
         updateData(updatedLinks, categories);
       }
     }
-  };
+  }, [links, categories]);
 
   // 开始排序
   const startSorting = (categoryId: string) => {
@@ -1362,11 +1380,11 @@ function App() {
   // --- Filtering & Memo ---
 
   // Helper to check if a category is "Locked" (Has password AND not unlocked)
-  const isCategoryLocked = (catId: string) => {
+  const isCategoryLocked = useCallback((catId: string) => {
     const cat = categories.find(c => c.id === catId);
     if (!cat || !cat.password) return false;
     return !unlockedCategoryIds.has(catId);
-  };
+  }, [categories, unlockedCategoryIds]);
 
   const pinnedLinks = useMemo(() => {
     // Don't show pinned links if they belong to a locked category
@@ -1391,9 +1409,9 @@ function App() {
     // Security Filter: Always hide links from locked categories
     result = result.filter(l => !isCategoryLocked(l.categoryId));
 
-    // Search Filter
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+    // Search Filter (uses debounced value to reduce computation during typing)
+    if (debouncedSearchQuery.trim()) {
+      const q = debouncedSearchQuery.toLowerCase();
       result = result.filter(l =>
         l.title.toLowerCase().includes(q) ||
         l.url.toLowerCase().includes(q) ||
@@ -1410,8 +1428,23 @@ function App() {
       // 改为升序排序，这样order值小(旧卡片)的排在前面，order值大(新卡片)的排在后面
       return aOrder - bOrder;
     });
-  }, [links, searchQuery, categories, unlockedCategoryIds]);
+  }, [links, debouncedSearchQuery, categories, unlockedCategoryIds]);
 
+  // --- Memoized per-category link lists (avoid re-sorting in render loop) ---
+  const linksByCategory = useMemo(() => {
+    const map = new Map<string, LinkItem[]>();
+    for (const cat of categories) {
+      const catLinks = links
+        .filter(l => l.categoryId === cat.id)
+        .sort((a, b) => {
+          const aOrder = a.order !== undefined ? a.order : a.createdAt;
+          const bOrder = b.order !== undefined ? b.order : b.createdAt;
+          return aOrder - bOrder;
+        });
+      map.set(cat.id, catLinks);
+    }
+    return map;
+  }, [links, categories]);
 
   // --- Render Components ---
 
@@ -1559,58 +1592,72 @@ function App() {
         <>
           <AuthModal isOpen={isAuthOpen} onLogin={handleLogin} />
 
-          <CategoryAuthModal
-            isOpen={!!catAuthModalData}
-            category={catAuthModalData}
-            onClose={() => setCatAuthModalData(null)}
-            onUnlock={handleUnlockCategory}
-          />
+          <Suspense fallback={<ModalFallback />}>
+            {!!catAuthModalData && (
+              <CategoryAuthModal
+                isOpen={!!catAuthModalData}
+                category={catAuthModalData}
+                onClose={() => setCatAuthModalData(null)}
+                onUnlock={handleUnlockCategory}
+              />
+            )}
 
-          <CategoryManagerModal
-            isOpen={isCatManagerOpen}
-            onClose={() => setIsCatManagerOpen(false)}
-            categories={categories}
-            onUpdateCategories={handleUpdateCategories}
-            onDeleteCategory={handleDeleteCategory}
-            onVerifyPassword={handleCategoryActionAuth}
-          />
+            {isCatManagerOpen && (
+              <CategoryManagerModal
+                isOpen={isCatManagerOpen}
+                onClose={() => setIsCatManagerOpen(false)}
+                categories={categories}
+                onUpdateCategories={handleUpdateCategories}
+                onDeleteCategory={handleDeleteCategory}
+                onVerifyPassword={handleCategoryActionAuth}
+              />
+            )}
 
-          <BackupModal
-            isOpen={isBackupModalOpen}
-            onClose={() => setIsBackupModalOpen(false)}
-            links={links}
-            categories={categories}
-            onRestore={handleRestoreBackup}
-            webDavConfig={webDavConfig}
-            onSaveWebDavConfig={handleSaveWebDavConfig}
-            searchConfig={{ mode: searchMode, externalSources: externalSearchSources }}
-            onRestoreSearchConfig={handleRestoreSearchConfig}
-          />
+            {isBackupModalOpen && (
+              <BackupModal
+                isOpen={isBackupModalOpen}
+                onClose={() => setIsBackupModalOpen(false)}
+                links={links}
+                categories={categories}
+                onRestore={handleRestoreBackup}
+                webDavConfig={webDavConfig}
+                onSaveWebDavConfig={handleSaveWebDavConfig}
+                searchConfig={{ mode: searchMode, externalSources: externalSearchSources }}
+                onRestoreSearchConfig={handleRestoreSearchConfig}
+              />
+            )}
 
-          <ImportModal
-            isOpen={isImportModalOpen}
-            onClose={() => setIsImportModalOpen(false)}
-            existingLinks={links}
-            categories={categories}
-            onImport={handleImportConfirm}
-            onImportSearchConfig={handleRestoreSearchConfig}
-          />
+            {isImportModalOpen && (
+              <ImportModal
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                existingLinks={links}
+                categories={categories}
+                onImport={handleImportConfirm}
+                onImportSearchConfig={handleRestoreSearchConfig}
+              />
+            )}
 
-          <SettingsModal
-            isOpen={isSettingsModalOpen}
-            onClose={() => setIsSettingsModalOpen(false)}
-            passwordExpiryConfig={passwordExpiryConfig}
-            onSavePasswordExpiry={handleSavePasswordExpiryConfig}
-            siteConfig={siteConfig}
-            onSaveSiteConfig={handleSaveSiteConfig}
-          />
+            {isSettingsModalOpen && (
+              <SettingsModal
+                isOpen={isSettingsModalOpen}
+                onClose={() => setIsSettingsModalOpen(false)}
+                passwordExpiryConfig={passwordExpiryConfig}
+                onSavePasswordExpiry={handleSavePasswordExpiryConfig}
+                siteConfig={siteConfig}
+                onSaveSiteConfig={handleSaveSiteConfig}
+              />
+            )}
 
-          <SearchConfigModal
-            isOpen={isSearchConfigModalOpen}
-            onClose={() => setIsSearchConfigModalOpen(false)}
-            sources={externalSearchSources}
-            onSave={(sources) => handleSaveSearchConfig(sources, searchMode)}
-          />
+            {isSearchConfigModalOpen && (
+              <SearchConfigModal
+                isOpen={isSearchConfigModalOpen}
+                onClose={() => setIsSearchConfigModalOpen(false)}
+                sources={externalSearchSources}
+                onSave={(sources) => handleSaveSearchConfig(sources, searchMode)}
+              />
+            )}
+          </Suspense>
 
           {/* Main Content */}
           <main className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-900 overflow-y-auto relative w-full">
@@ -1752,7 +1799,7 @@ function App() {
               </section>
 
               {/* 搜索结果 (如果正在搜索且有结果) */}
-              {searchQuery.trim() && displayedLinks.length > 0 ? (
+              {debouncedSearchQuery.trim() && displayedLinks.length > 0 ? (
                 <section>
                   <div className="flex items-center gap-2 mb-4">
                     <Search className="text-blue-500" size={24} />
@@ -1763,7 +1810,7 @@ function App() {
                     {displayedLinks.map(link => renderLinkCard(link))}
                   </div>
                 </section>
-              ) : searchQuery.trim() && displayedLinks.length === 0 ? (
+              ) : debouncedSearchQuery.trim() && displayedLinks.length === 0 ? (
                 <section className="py-12 text-center">
                   <Search className="mx-auto text-slate-300 dark:text-slate-600 mb-4" size={48} />
                   <p className="text-slate-500 dark:text-slate-400">没有找到匹配的链接</p>
@@ -1775,14 +1822,8 @@ function App() {
 
                   {/* 分类循环 */}
                   {categories.map((cat, index) => {
-                    // Filter links for this category
-                    const catLinks = links
-                      .filter(l => l.categoryId === cat.id)
-                      .sort((a, b) => {
-                        const aOrder = a.order !== undefined ? a.order : a.createdAt;
-                        const bOrder = b.order !== undefined ? b.order : b.createdAt;
-                        return aOrder - bOrder;
-                      });
+                    // Use memoized per-category links
+                    const catLinks = linksByCategory.get(cat.id) || [];
 
                     const isLocked = cat.password && !unlockedCategoryIds.has(cat.id);
 
@@ -1833,16 +1874,20 @@ function App() {
             </div>
           </main>
 
-          <LinkModal
-            isOpen={isModalOpen}
-            onClose={() => { setIsModalOpen(false); setEditingLink(undefined); setPrefillLink(undefined); }}
-            onSave={editingLink ? handleEditLink : handleAddLink}
-            onDelete={editingLink ? handleDeleteLink : undefined}
-            categories={categories}
-            initialData={editingLink || (prefillLink as LinkItem)}
+          <Suspense fallback={<ModalFallback />}>
+            {isModalOpen && (
+              <LinkModal
+                isOpen={isModalOpen}
+                onClose={() => { setIsModalOpen(false); setEditingLink(undefined); setPrefillLink(undefined); }}
+                onSave={editingLink ? handleEditLink : handleAddLink}
+                onDelete={editingLink ? handleDeleteLink : undefined}
+                categories={categories}
+                initialData={editingLink || (prefillLink as LinkItem)}
 
-            defaultCategoryId={selectedCategory !== 'all' ? selectedCategory : undefined}
-          />
+                defaultCategoryId={selectedCategory !== 'all' ? selectedCategory : undefined}
+              />
+            )}
+          </Suspense>
 
           {/* 右键菜单 */}
           <ContextMenu
@@ -1857,12 +1902,16 @@ function App() {
           />
 
           {/* 二维码模态框 */}
-          <QRCodeModal
-            isOpen={qrCodeModal.isOpen}
-            url={qrCodeModal.url || ''}
-            title={qrCodeModal.title || ''}
-            onClose={() => setQrCodeModal({ isOpen: false, url: '', title: '' })}
-          />
+          <Suspense fallback={<ModalFallback />}>
+            {qrCodeModal.isOpen && (
+              <QRCodeModal
+                isOpen={qrCodeModal.isOpen}
+                url={qrCodeModal.url || ''}
+                title={qrCodeModal.title || ''}
+                onClose={() => setQrCodeModal({ isOpen: false, url: '', title: '' })}
+              />
+            )}
+          </Suspense>
         </>
       )}
     </div>
