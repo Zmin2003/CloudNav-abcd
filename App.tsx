@@ -23,6 +23,8 @@ import AuthModal from './components/AuthModal';
 import ContextMenu from './components/ContextMenu';
 import SortableLinkCard from './components/SortableLinkCard';
 import ErrorBoundary from './components/ErrorBoundary';
+import LinkCard from './components/LinkCard';
+import { applySiteConfig } from './utils/favicon';
 
 // Lazy-loaded modals (code-splitting: only loaded when opened)
 const LinkModal = lazy(() => import('./components/LinkModal'));
@@ -576,19 +578,7 @@ function App() {
           const siteConfigData = await siteConfigRes.json();
           if (siteConfigData) {
             setSiteConfig(siteConfigData);
-            // 应用网站标题
-            if (siteConfigData.websiteTitle) {
-              document.title = siteConfigData.websiteTitle;
-            }
-            // 应用网站图标
-            if (siteConfigData.faviconUrl) {
-              const existingFavicons = document.querySelectorAll('link[rel="icon"]');
-              existingFavicons.forEach(favicon => favicon.remove());
-              const favicon = document.createElement('link');
-              favicon.rel = 'icon';
-              favicon.href = siteConfigData.faviconUrl;
-              document.head.appendChild(favicon);
-            }
+            applySiteConfig(siteConfigData);
           }
         }
       } catch (e) {
@@ -1122,21 +1112,7 @@ function App() {
   // 保存网站自定义配置
   const handleSaveSiteConfig = async (config: SiteConfig) => {
     setSiteConfig(config);
-
-    // 应用网站标题
-    if (config.websiteTitle) {
-      document.title = config.websiteTitle;
-    }
-
-    // 应用网站图标
-    if (config.faviconUrl) {
-      const existingFavicons = document.querySelectorAll('link[rel="icon"]');
-      existingFavicons.forEach(favicon => favicon.remove());
-      const favicon = document.createElement('link');
-      favicon.rel = 'icon';
-      favicon.href = config.faviconUrl;
-      document.head.appendChild(favicon);
-    }
+    applySiteConfig(config);
 
     // 保存到云端
     if (authToken) {
@@ -1450,121 +1426,6 @@ function App() {
 
   // SortableLinkCard 组件已移至 components/SortableLinkCard.tsx
 
-  const renderLinkCard = (link: LinkItem) => {
-    const isSelected = selectedLinks.has(link.id);
-
-    // 固定使用简约模式
-    const isDetailedView = false;
-
-    return (
-      <div
-        key={link.id}
-        className={`group relative transition-all duration-300 ease-out hover:shadow-xl hover:shadow-blue-200/60 dark:hover:shadow-blue-900/30 hover:-translate-y-0.5 hover:scale-[1.02] ${isSelected
-          ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800'
-          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
-          } ${isBatchEditMode ? 'cursor-pointer' : ''} ${isDetailedView
-            ? 'flex flex-col rounded-2xl border shadow-sm p-4 min-h-[100px] hover:border-blue-400 dark:hover:border-blue-500'
-            : 'flex items-center justify-between rounded-xl border shadow-sm p-3 hover:border-blue-400 dark:hover:border-blue-500'
-          }`}
-        onClick={() => isBatchEditMode && toggleLinkSelection(link.id)}
-        onContextMenu={(e) => handleContextMenu(e, link)}
-      >
-        {/* 链接内容 - 在批量编辑模式下不使用a标签 */}
-        {isBatchEditMode ? (
-          <div className={`flex flex-1 min-w-0 overflow-hidden h-full ${isDetailedView ? 'flex-col' : 'items-center'
-            }`}>
-            {/* 第一行：图标和标题水平排列 */}
-            <div className={`flex items-center gap-3 w-full`}>
-              {/* Icon */}
-              <div className={`text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-bold uppercase shrink-0 ${isDetailedView ? 'w-8 h-8 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800' : 'w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-700'
-                }`}>
-                {link.icon ? (
-                  <img
-                    src={link.icon}
-                    alt=""
-                    className="w-5 h-5 object-contain"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      const googleFaviconUrl = `https://www.google.com/s2/favicons?domain=${new URL(link.url).hostname}&sz=32`;
-                      if (target.src !== googleFaviconUrl) {
-                        target.src = googleFaviconUrl;
-                      } else {
-                        target.style.display = 'none';
-                      }
-                    }}
-                  />
-                ) : (
-                  link.title.charAt(0)
-                )}
-              </div>
-
-              {/* 标题 */}
-              <h3 className={`text-slate-900 dark:text-slate-100 truncate overflow-hidden text-ellipsis ${isDetailedView ? 'text-base' : 'text-sm font-medium text-slate-800 dark:text-slate-200'
-                }`}>
-                {link.title}
-              </h3>
-            </div>
-
-            {/* 第二行：描述文字 */}
-            {isDetailedView && link.description && (
-              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2">
-                {link.description}
-              </p>
-            )}
-          </div>
-        ) : (
-          <a
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex flex-1 min-w-0 overflow-hidden h-full ${isDetailedView ? 'flex-col' : 'items-center'
-              }`}
-          >
-            {/* 第一行：图标和标题水平排列 */}
-            <div className={`flex items-center gap-3 w-full`}>
-              {/* Icon */}
-              <div className={`text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-bold uppercase shrink-0 ${isDetailedView ? 'w-8 h-8 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800' : 'w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-700'
-                }`}>
-                {link.icon ? (
-                  <img
-                    src={link.icon}
-                    alt=""
-                    className="w-5 h-5 object-contain"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      const googleFaviconUrl = `https://www.google.com/s2/favicons?domain=${new URL(link.url).hostname}&sz=32`;
-                      if (target.src !== googleFaviconUrl) {
-                        target.src = googleFaviconUrl;
-                      } else {
-                        target.style.display = 'none';
-                      }
-                    }}
-                  />
-                ) : (
-                  link.title.charAt(0)
-                )}
-              </div>
-
-              {/* 标题 */}
-              <h3 className={`text-slate-800 dark:text-slate-200 truncate whitespace-nowrap overflow-hidden text-ellipsis group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors ${isDetailedView ? 'text-base' : 'text-sm font-medium'
-                }`}>
-                {link.title}
-              </h3>
-            </div>
-
-            {/* 第二行：描述文字 */}
-            {isDetailedView && link.description && (
-              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2">
-                {link.description}
-              </p>
-            )}
-          </a>
-        )}
-
-      </div>
-    );
-  };
-
   return (
     <div className="flex h-screen overflow-hidden text-slate-900 dark:text-slate-50">
       {/* 认证遮罩层 - 当需要认证时显示 */}
@@ -1807,7 +1668,16 @@ function App() {
                     <span className="text-sm text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{displayedLinks.length}</span>
                   </div>
                   <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10">
-                    {displayedLinks.map(link => renderLinkCard(link))}
+                    {displayedLinks.map(link => (
+                      <LinkCard
+                        key={link.id}
+                        link={link}
+                        isBatchEditMode={isBatchEditMode}
+                        isSelected={selectedLinks.has(link.id)}
+                        onToggleSelection={toggleLinkSelection}
+                        onContextMenu={handleContextMenu}
+                      />
+                    ))}
                   </div>
                 </section>
               ) : debouncedSearchQuery.trim() && displayedLinks.length === 0 ? (
@@ -1863,7 +1733,16 @@ function App() {
                           </div>
                         ) : (
                           <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10">
-                            {catLinks.map(link => renderLinkCard(link))}
+                            {catLinks.map(link => (
+                              <LinkCard
+                                key={link.id}
+                                link={link}
+                                isBatchEditMode={isBatchEditMode}
+                                isSelected={selectedLinks.has(link.id)}
+                                onToggleSelection={toggleLinkSelection}
+                                onContextMenu={handleContextMenu}
+                              />
+                            ))}
                           </div>
                         )}
                       </section>

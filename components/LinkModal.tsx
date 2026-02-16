@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Loader2, Pin, Wand2, Trash2 } from 'lucide-react';
 import { LinkItem, Category } from '../types';
+import { STORAGE_KEYS } from '../constants';
 
 interface LinkModalProps {
   isOpen: boolean;
@@ -85,7 +86,7 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
         domain = urlObj.hostname;
       }
 
-      const authToken = localStorage.getItem('authToken');
+      const authToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       if (authToken) {
         await fetch('/api/storage', {
           method: 'POST',
@@ -172,7 +173,7 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
       setIcon(iconUrl);
 
       try {
-        const authToken = localStorage.getItem('authToken');
+        const authToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
         if (authToken) {
           await fetch('/api/storage', {
             method: 'POST',
