@@ -62,6 +62,9 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
   }, [isOpen, initialData, categories, defaultCategoryId]);
 
   // 当URL变化且启用自动获取图标时，自动获取图标
+  // NOTE: handleFetchIcon intentionally omitted from deps to avoid infinite re-fetch loop.
+  // The function captures `url` from state which is already a dependency.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (url && autoFetchIcon && !initialData) {
       const timer = setTimeout(() => {

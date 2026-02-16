@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Edit2, Check, Globe, Search, ExternalLink, RotateCcw } from 'lucide-react';
 import { ExternalSearchSource, SearchMode } from '../types';
+import { createSearchSources } from '../constants';
 
 interface SearchConfigModalProps {
   isOpen: boolean;
@@ -49,7 +50,14 @@ const SearchConfigModal: React.FC<SearchConfigModalProps> = ({
   };
 
   const handleSaveEdit = (id: string) => {
+    // Editing is done inline via handleUpdateSource; just close edit mode
     setIsEditing(null);
+  };
+
+  const handleUpdateSource = (id: string, field: keyof ExternalSearchSource, value: string) => {
+    setLocalSources(localSources.map(source =>
+      source.id === id ? { ...source, [field]: value } : source
+    ));
   };
 
   const handleDeleteSource = (id: string) => {
@@ -68,90 +76,7 @@ const SearchConfigModal: React.FC<SearchConfigModalProps> = ({
   };
 
   const handleReset = () => {
-    const defaultSources: ExternalSearchSource[] = [
-      {
-        id: 'bing',
-        name: '必应',
-        url: 'https://www.bing.com/search?q={query}',
-        icon: 'Search',
-        enabled: true,
-        createdAt: Date.now()
-      },  
-      {
-        id: 'google',
-        name: 'Google',
-        url: 'https://www.google.com/search?q={query}',
-        icon: 'Search',
-        enabled: true,
-        createdAt: Date.now()
-      },
-      {
-        id: 'baidu',
-        name: '百度',
-        url: 'https://www.baidu.com/s?wd={query}',
-        icon: 'Globe',
-        enabled: true,
-        createdAt: Date.now()
-      },
-      {
-        id: 'sogou',
-        name: '搜狗',
-        url: 'https://www.sogou.com/web?query={query}',
-        icon: 'Globe',
-        enabled: true,
-        createdAt: Date.now()
-      },
-      {
-        id: 'yandex',
-        name: 'Yandex',
-        url: 'https://yandex.com/search/?text={query}',
-        icon: 'Globe',
-        enabled: true,
-        createdAt: Date.now()
-      },
-      {
-        id: 'github',
-        name: 'GitHub',
-        url: 'https://github.com/search?q={query}',
-        icon: 'Github',
-        enabled: true,
-        createdAt: Date.now()
-      },
-      {
-        id: 'linuxdo',
-        name: 'Linux.do',
-        url: 'https://linux.do/search?q={query}',
-        icon: 'Terminal',
-        enabled: true,
-        createdAt: Date.now()
-      },
-      {
-        id: 'bilibili',
-        name: 'B站',
-        url: 'https://search.bilibili.com/all?keyword={query}',
-        icon: 'Play',
-        enabled: true,
-        createdAt: Date.now()
-      },
-      {
-        id: 'youtube',
-        name: 'YouTube',
-        url: 'https://www.youtube.com/results?search_query={query}',
-        icon: 'Video',
-        enabled: true,
-        createdAt: Date.now()
-      },
-      {
-        id: 'wikipedia',
-        name: '维基',
-        url: 'https://zh.wikipedia.org/wiki/Special:Search?search={query}',
-        icon: 'BookOpen',
-        enabled: true,
-        createdAt: Date.now()
-      }
-    ];
-    
-    setLocalSources(defaultSources);
+    setLocalSources(createSearchSources());
   };
 
   const handleCancel = () => {
@@ -243,20 +168,56 @@ const SearchConfigModal: React.FC<SearchConfigModalProps> = ({
                         <Globe size={16} className="text-slate-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm dark:text-white truncate">{source.name}</span>
-                          {source.enabled && (
-                            <span className="px-1.5 py-0.5 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full">
-                              启用
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                          {source.url}
-                        </div>
+                        {isEditing === source.id ? (
+                          <div className="space-y-1">
+                            <input
+                              type="text"
+                              value={source.name}
+                              onChange={(e) => handleUpdateSource(source.id, 'name', e.target.value)}
+                              className="w-full p-1 text-sm rounded border border-blue-500 dark:bg-slate-800 dark:text-white outline-none"
+                            />
+                            <input
+                              type="text"
+                              value={source.url}
+                              onChange={(e) => handleUpdateSource(source.id, 'url', e.target.value)}
+                              className="w-full p-1 text-xs rounded border border-blue-500 dark:bg-slate-800 dark:text-white outline-none"
+                            />
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm dark:text-white truncate">{source.name}</span>
+                              {source.enabled && (
+                                <span className="px-1.5 py-0.5 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full">
+                                  启用
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                              {source.url}
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
+                      {isEditing === source.id ? (
+                        <button
+                          onClick={() => handleSaveEdit(source.id)}
+                          className="p-1.5 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+                          title="保存"
+                        >
+                          <Check size={14} />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleEditSource(source.id)}
+                          className="p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
+                          title="编辑"
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDeleteSource(source.id)}
                         className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"

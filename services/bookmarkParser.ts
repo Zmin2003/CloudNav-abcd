@@ -1,5 +1,4 @@
 import { LinkItem, Category } from '../types';
-import { v4 as uuidv4 } from 'uuid'; // Assuming uuid is available or we use a simple generator
 
 // Simple UUID generator fallback
 const generateId = () => {

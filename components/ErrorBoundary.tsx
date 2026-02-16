@@ -1,12 +1,12 @@
-import React, { Component, ReactNode } from 'react';
+import React, { useState } from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
-interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
 }
 
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
 }
@@ -15,13 +15,18 @@ interface State {
  * 错误边界组件
  * 捕获子组件树中的 JavaScript 错误，显示备用 UI
  */
-export class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  declare state: ErrorBoundaryState;
+  declare props: Readonly<ErrorBoundaryProps>;
+  declare setState: React.Component<ErrorBoundaryProps, ErrorBoundaryState>['setState'];
+
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
+    this.handleRetry = this.handleRetry.bind(this);
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
   }
 
@@ -29,9 +34,9 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
   }
 
-  handleRetry = () => {
+  handleRetry() {
     this.setState({ hasError: false, error: null });
-  };
+  }
 
   render() {
     if (this.state.hasError) {

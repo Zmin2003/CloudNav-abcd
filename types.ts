@@ -6,6 +6,7 @@ export interface LinkItem {
   description?: string;
   categoryId: string;
   createdAt: number;
+  order?: number; // Custom sort order for manual reordering
   pinned?: boolean; // New field for pinning
   pinnedOrder?: number; // Field for pinned link sorting order
 }

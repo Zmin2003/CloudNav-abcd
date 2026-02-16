@@ -16,7 +16,7 @@ const commonIcons = [
   'Plus', 'Minus', 'X', 'Check', 'AlertCircle', 'Info',
   'Edit', 'Copy', 'Share', 'Link', 'ExternalLink', 'Lock',
   'Code', 'Terminal', 'Database', 'Server', 'Cloud', 'Wifi',
-  'ShoppingCart', 'CreditCard', 'Package', 'Truck', 'Store', 'Tag',
+  'ShoppingCart', 'CreditCard', 'Package', 'Truck', 'Store',
   'Music', 'Play', 'Pause', 'Volume2', 'Headphones', 'Mic',
   'Book', 'BookOpen', 'FileText', 'PenTool', 'Highlighter', 'Type',
   'Layout', 'Grid', 'List', 'Columns', 'Sidebar', 'Layers',
@@ -32,11 +32,6 @@ const IconSelector: React.FC<IconSelectorProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('Folder');
-
-  // 获取当前目标图标
-  const getCurrentIcon = () => {
-    return selectedIcon;
-  };
 
   // 过滤图标
   const filteredIcons = commonIcons.filter(icon => 
