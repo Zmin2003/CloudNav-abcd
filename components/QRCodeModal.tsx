@@ -30,8 +30,8 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-sm w-full mx-4 p-6 relative">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-xl shadow-xl sm:max-w-sm w-full sm:mx-4 p-6 relative safe-area-bottom">
         {/* 关闭按钮 */}
         <button
           onClick={onClose}

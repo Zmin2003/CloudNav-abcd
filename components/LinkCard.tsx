@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import { LinkItem } from '../types';
 import { handleFaviconError } from '../utils/favicon';
 
@@ -13,6 +13,7 @@ interface LinkCardProps {
 /**
  * 链接卡片组件
  * 统一渲染普通模式和批量编辑模式下的链接卡片
+ * 支持移动端长按触发右键菜单
  */
 const LinkCard: React.FC<LinkCardProps> = ({
   link,
@@ -21,6 +22,50 @@ const LinkCard: React.FC<LinkCardProps> = ({
   onToggleSelection,
   onContextMenu,
 }) => {
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggered = useRef(false);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    longPressTriggered.current = false;
+    longPressTimer.current = setTimeout(() => {
+      longPressTriggered.current = true;
+      // Synthesize a mouse event at the touch position for the context menu
+      const touch = e.touches[0];
+      const syntheticEvent = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+      } as React.MouseEvent;
+      onContextMenu(syntheticEvent, link);
+    }, 500);
+  }, [link, onContextMenu]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
+  const handleTouchMove = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    if (longPressTriggered.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    if (isBatchEditMode) {
+      onToggleSelection(link.id);
+    }
+  }, [isBatchEditMode, link.id, onToggleSelection]);
+
   const iconElement = link.icon ? (
     <img
       src={link.icon}
@@ -52,13 +97,16 @@ const LinkCard: React.FC<LinkCardProps> = ({
   return (
     <div
       key={link.id}
-      className={`group relative transition-all duration-300 ease-out hover:shadow-xl hover:shadow-blue-200/60 dark:hover:shadow-blue-900/30 hover:-translate-y-0.5 hover:scale-[1.02] flex items-center justify-between rounded-xl border shadow-sm p-3 hover:border-blue-400 dark:hover:border-blue-500 ${
+      className={`group relative touch-none-select transition-all duration-300 ease-out hover:shadow-xl hover:shadow-blue-200/60 dark:hover:shadow-blue-900/30 hover:-translate-y-0.5 hover:scale-[1.02] flex items-center justify-between rounded-xl border shadow-sm p-3 hover:border-blue-400 dark:hover:border-blue-500 active:scale-[0.98] ${
         isSelected
           ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800'
           : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
       } ${isBatchEditMode ? 'cursor-pointer' : ''}`}
-      onClick={() => isBatchEditMode && onToggleSelection(link.id)}
+      onClick={handleClick}
       onContextMenu={(e) => onContextMenu(e, link)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={handleTouchMove}
     >
       {isBatchEditMode ? (
         <div className="flex flex-1 min-w-0 overflow-hidden h-full items-center">
@@ -70,6 +118,7 @@ const LinkCard: React.FC<LinkCardProps> = ({
           target="_blank"
           rel="noopener noreferrer"
           className="flex flex-1 min-w-0 overflow-hidden h-full items-center"
+          onClick={(e) => { if (longPressTriggered.current) e.preventDefault(); }}
         >
           {content}
         </a>

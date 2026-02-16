@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
-import { Search, Plus, Settings, Upload, ArrowRight, Lock } from 'lucide-react';
+import { Search, Plus, Settings, Upload, ArrowRight, Lock, Menu, X, MoreHorizontal, Trash2, FolderInput, CheckSquare } from 'lucide-react';
 import {
   DndContext,
   DragEndEvent,
   closestCenter,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   KeyboardSensor,
@@ -109,6 +110,9 @@ function App() {
   // Sort State
   const [isSortingMode, setIsSortingMode] = useState<string | null>(null);
   const [isSortingPinned, setIsSortingPinned] = useState(false);
+
+  // Mobile Menu State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Batch Edit State
   const [isBatchEditMode, setIsBatchEditMode] = useState(false);
@@ -495,6 +499,7 @@ function App() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
@@ -735,15 +740,15 @@ function App() {
           <main className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-900 overflow-y-auto relative w-full">
 
             {/* Header */}
-            <header className="h-16 px-4 lg:px-6 flex items-center justify-between bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shrink-0">
-              <div className="flex items-center gap-6">
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+            <header className="h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shrink-0 safe-area-top safe-area-x">
+              <div className="flex items-center gap-4 sm:gap-6">
+                <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
                   {siteConfig.navigationName || 'Zmin Nav'}
                 </span>
               </div>
 
-              {/* Actions */}
-              <div className="flex items-center gap-2">
+              {/* Desktop Actions */}
+              <div className="hidden sm:flex items-center gap-2">
                 <button
                   onClick={() => setIsSettingsModalOpen(true)}
                   className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all"
@@ -753,25 +758,75 @@ function App() {
                 </button>
                 <button
                   onClick={() => { if (!authToken) setIsAuthOpen(true); else setIsImportModalOpen(true); }}
-                  className="hidden sm:flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full border border-slate-200 dark:border-slate-600 transition-all"
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full border border-slate-200 dark:border-slate-600 transition-all"
                 >
                   <Upload size={14} /> 导入
                 </button>
                 <button
                   onClick={() => { if (!authToken) setIsAuthOpen(true); else setIsCatManagerOpen(true); }}
-                  className="hidden sm:flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full border border-slate-200 dark:border-slate-600 transition-all"
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full border border-slate-200 dark:border-slate-600 transition-all"
                 >
                   <Settings size={14} /> 分类
                 </button>
               </div>
+
+              {/* Mobile Menu Toggle */}
+              <div className="flex sm:hidden items-center gap-1">
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all"
+                >
+                  {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                </button>
+              </div>
             </header>
 
+            {/* Mobile Menu Dropdown */}
+            {isMobileMenuOpen && (
+              <div className="sm:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-3 py-2 flex flex-wrap gap-2 safe-area-x fade-in">
+                <button
+                  onClick={() => { setIsSettingsModalOpen(true); setIsMobileMenuOpen(false); }}
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 rounded-lg active:bg-slate-100 dark:active:bg-slate-600 transition-colors"
+                >
+                  <Settings size={16} /> 设置
+                </button>
+                <button
+                  onClick={() => { if (!authToken) setIsAuthOpen(true); else setIsImportModalOpen(true); setIsMobileMenuOpen(false); }}
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 rounded-lg active:bg-slate-100 dark:active:bg-slate-600 transition-colors"
+                >
+                  <Upload size={16} /> 导入
+                </button>
+                <button
+                  onClick={() => { if (!authToken) setIsAuthOpen(true); else setIsCatManagerOpen(true); setIsMobileMenuOpen(false); }}
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 rounded-lg active:bg-slate-100 dark:active:bg-slate-600 transition-colors"
+                >
+                  <FolderInput size={16} /> 分类
+                </button>
+                <button
+                  onClick={() => { if (!authToken) setIsAuthOpen(true); else setIsBackupModalOpen(true); setIsMobileMenuOpen(false); }}
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 rounded-lg active:bg-slate-100 dark:active:bg-slate-600 transition-colors"
+                >
+                  <Upload size={16} /> 备份
+                </button>
+                <button
+                  onClick={() => { toggleBatchEditMode(); setIsMobileMenuOpen(false); }}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg transition-colors ${
+                    isBatchEditMode
+                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                      : 'text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 active:bg-slate-100 dark:active:bg-slate-600'
+                  }`}
+                >
+                  <CheckSquare size={16} /> 批量编辑
+                </button>
+              </div>
+            )}
+
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 lg:p-8 space-y-8 scroll-smooth">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 lg:p-8 space-y-6 sm:space-y-8 scroll-smooth">
 
               {/* Hero Search Section */}
-              <section className="flex flex-col items-center justify-center py-12 md:py-20 animate-in fade-in zoom-in duration-500">
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-slate-100 mb-8 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <section className="flex flex-col items-center justify-center py-6 sm:py-12 md:py-20 animate-in fade-in zoom-in duration-500">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 dark:text-slate-100 mb-4 sm:mb-8 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   {greeting}
                 </h1>
 
@@ -784,7 +839,7 @@ function App() {
                       onMouseEnter={() => setIsPopupHovered(true)}
                       onMouseLeave={() => setIsPopupHovered(false)}
                     >
-                      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3">
+                      <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-2 sm:gap-3">
                         {externalSearchSources
                           .filter(source => source.enabled)
                           .map((source, index) => {
@@ -880,7 +935,7 @@ function App() {
                     <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">搜索结果</h2>
                     <span className="text-sm text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{displayedLinks.length}</span>
                   </div>
-                  <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10">
+                  <div className="grid gap-2.5 sm:gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10">
                     {displayedLinks.map(link => (
                       <LinkCard
                         key={link.id}
@@ -921,7 +976,7 @@ function App() {
 
                           <button
                             onClick={() => { setEditingLink(undefined); setPrefillLink({ categoryId: cat.id }); setIsModalOpen(true); }}
-                            className="opacity-0 group-hover:opacity-100 p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-all"
+                            className="sm:opacity-0 sm:group-hover:opacity-100 p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-all"
                             title="在此分类添加链接"
                           >
                             <Plus size={18} />
@@ -940,7 +995,7 @@ function App() {
                             </button>
                           </div>
                         ) : (
-                          <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10">
+                          <div className="grid gap-2.5 sm:gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10">
                             {catLinks.map(link => (
                               <LinkCard
                                 key={link.id}
@@ -974,6 +1029,41 @@ function App() {
               />
             )}
           </Suspense>
+
+          {/* Mobile FAB: Add Link */}
+          <button
+            onClick={() => { if (!authToken) setIsAuthOpen(true); else { setEditingLink(undefined); setPrefillLink(undefined); setIsModalOpen(true); } }}
+            className="sm:hidden fixed right-4 bottom-4 z-30 w-14 h-14 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-full shadow-lg shadow-blue-500/30 flex items-center justify-center transition-all safe-area-bottom"
+            style={{ bottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+          >
+            <Plus size={24} />
+          </button>
+
+          {/* Mobile Batch Edit Toolbar */}
+          {isBatchEditMode && (
+            <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 px-4 py-3 safe-area-bottom safe-area-x slide-up-sheet">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm text-slate-600 dark:text-slate-400">
+                  已选 <b className="text-blue-600 dark:text-blue-400">{selectedLinks.size}</b> 项
+                </span>
+                <div className="flex items-center gap-2">
+                  <button onClick={handleSelectAll} className="px-3 py-1.5 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg">
+                    {selectedLinks.size === displayedLinks.length ? '取消全选' : '全选'}
+                  </button>
+                  <button
+                    onClick={handleBatchDelete}
+                    disabled={selectedLinks.size === 0}
+                    className="px-3 py-1.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg disabled:opacity-40"
+                  >
+                    <Trash2 size={14} className="inline mr-1" />删除
+                  </button>
+                  <button onClick={toggleBatchEditMode} className="px-3 py-1.5 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg">
+                    完成
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 右键菜单 */}
           <ContextMenu
