@@ -13,7 +13,7 @@ export const STORAGE_KEYS = {
 } as const;
 
 // GitHub 仓库地址
-export const GITHUB_REPO_URL = 'https://github.com/aabacada/CloudNav-abcd';
+export const GITHUB_REPO_URL = 'https://github.com/Zmin2003/CloudNav-abcd';
 
 // API 端点
 export const API_ENDPOINTS = {

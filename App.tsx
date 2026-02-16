@@ -1527,7 +1527,7 @@ function App() {
             <header className="h-16 px-4 lg:px-6 flex items-center justify-between bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shrink-0">
               <div className="flex items-center gap-6">
                 <span className="text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-                  {siteConfig.navigationName || 'CloudNav'}
+                  {siteConfig.navigationName || 'Zmin Nav'}
                 </span>
               </div>
 

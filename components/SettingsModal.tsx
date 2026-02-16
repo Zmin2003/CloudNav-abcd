@@ -60,12 +60,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     // --- Chrome Extension Code ---
     const extManifest = `{
   "manifest_version": 3,
-  "name": "CloudNav Assistant",
+  "name": "Zmin Nav Assistant",
   "version": "3.0",
   "permissions": ["activeTab"],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "保存到CloudNav"
+    "default_title": "保存到Zmin Nav"
   }
 }`;
 
@@ -86,7 +86,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   </style>
 </head>
 <body>
-  <h3>保存到CloudNav</h3>
+  <h3>保存到Zmin Nav</h3>
   <label>标题</label>
   <input type="text" id="title" placeholder="网站标题">
   <label>分类</label>
@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                             type="text"
                                             value={localSiteConfig.websiteTitle || ''}
                                             onChange={(e) => handleSiteConfigChange('websiteTitle', e.target.value)}
-                                            placeholder="CloudNav"
+                                            placeholder="Zmin Nav"
                                             className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                                         />
                                         <p className="text-xs text-slate-400 mt-1">浏览器标签页显示的名称</p>
@@ -273,7 +273,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                             type="text"
                                             value={localSiteConfig.navigationName || ''}
                                             onChange={(e) => handleSiteConfigChange('navigationName', e.target.value)}
-                                            placeholder="CloudNav"
+                                            placeholder="Zmin Nav"
                                             className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                                         />
                                         <p className="text-xs text-slate-400 mt-1">页面左上角显示的名称</p>

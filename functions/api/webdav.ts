@@ -41,7 +41,7 @@ export const onRequestPost = async (context: { request: Request }) => {
     let method = 'PROPFIND';
     let headers: Record<string, string> = {
       'Authorization': authHeader,
-      'User-Agent': 'CloudNav/1.0'
+      'User-Agent': 'ZminNav/1.0'
     };
     let requestBody: string | undefined = undefined;
 
