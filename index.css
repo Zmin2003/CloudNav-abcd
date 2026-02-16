@@ -37,63 +37,116 @@ body {
   user-select: none;
 }
 
-/* Animation utilities */
-@keyframes animateIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* ========== Animation Keyframes ========== */
 
+/* Basic fade */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@keyframes slideInFromBottom {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Fade + gentle rise */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
+/* Fade + slight scale for popups */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Slide down for mobile menu */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Slide up from bottom for sheets */
 @keyframes slideUpSheet {
-  from {
-    opacity: 0;
-    transform: translateY(100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
-.animate-in {
-  animation: animateIn 0.5s ease-out;
+/* Gradient shimmer for text */
+@keyframes gradientShimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
+
+/* Subtle breathing glow for search bar focus */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 15px 0 rgba(59,130,246,0.15), 0 0 30px 0 rgba(59,130,246,0.05); }
+  50% { box-shadow: 0 0 20px 2px rgba(59,130,246,0.25), 0 0 40px 4px rgba(59,130,246,0.1); }
+}
+
+/* FAB gentle pulse */
+@keyframes fabPulse {
+  0%, 100% { box-shadow: 0 4px 14px 0 rgba(59,130,246,0.3); }
+  50% { box-shadow: 0 6px 20px 2px rgba(59,130,246,0.45); }
+}
+
+/* ========== Animation Utility Classes ========== */
 
 .fade-in {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.2s ease-out both;
 }
 
-.slide-in-from-bottom-4 {
-  animation: slideInFromBottom 0.5s ease-out;
+.fade-up {
+  animation: fadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.scale-in {
+  animation: scaleIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.slide-down {
+  animation: slideDown 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .slide-up-sheet {
-  animation: slideUpSheet 0.3s ease-out;
+  animation: slideUpSheet 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Staggered children entrance — apply .stagger-container to parent */
+.stagger-item {
+  opacity: 0;
+  animation: fadeUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Gradient shimmer text effect */
+.gradient-shimmer {
+  background-size: 200% 200%;
+  animation: gradientShimmer 6s ease infinite;
+}
+
+/* Search bar focus glow */
+.search-glow:focus-within {
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+/* FAB breathing pulse */
+.fab-pulse {
+  animation: fabPulse 3s ease-in-out infinite;
+}
+
+/* Card icon hover spin (applied via group-hover) */
+.icon-hover-float {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.group:hover .icon-hover-float {
+  transform: scale(1.15) rotate(-3deg);
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Mobile-specific: larger touch targets */

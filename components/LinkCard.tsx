@@ -80,7 +80,7 @@ const LinkCard: React.FC<LinkCardProps> = ({
   const content = (
     <div className="flex items-center gap-3 w-full">
       {/* Icon */}
-      <div className="text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-bold uppercase shrink-0 w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-700">
+      <div className="text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-bold uppercase shrink-0 w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-700 icon-hover-float">
         {iconElement}
       </div>
       {/* Title */}

@@ -740,7 +740,7 @@ function App() {
           <main className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-900 overflow-y-auto relative w-full">
 
             {/* Header */}
-            <header className="h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shrink-0 safe-area-top safe-area-x">
+            <header className="h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between bg-white/95 dark:bg-slate-800/95 sm:bg-white/80 sm:dark:bg-slate-800/80 backdrop-blur-sm sm:backdrop-blur-md border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shrink-0 safe-area-top safe-area-x">
               <div className="flex items-center gap-4 sm:gap-6">
                 <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
                   {siteConfig.navigationName || 'Zmin Nav'}
@@ -783,7 +783,7 @@ function App() {
 
             {/* Mobile Menu Dropdown */}
             {isMobileMenuOpen && (
-              <div className="sm:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-3 py-2 flex flex-wrap gap-2 safe-area-x fade-in">
+              <div className="sm:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-3 py-2 flex flex-wrap gap-2 safe-area-x slide-down">
                 <button
                   onClick={() => { setIsSettingsModalOpen(true); setIsMobileMenuOpen(false); }}
                   className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 rounded-lg active:bg-slate-100 dark:active:bg-slate-600 transition-colors"
@@ -825,17 +825,17 @@ function App() {
             <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 lg:p-8 space-y-6 sm:space-y-8 scroll-smooth">
 
               {/* Hero Search Section */}
-              <section className="flex flex-col items-center justify-center py-6 sm:py-12 md:py-20 animate-in fade-in zoom-in duration-500">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 dark:text-slate-100 mb-4 sm:mb-8 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <section className="flex flex-col items-center justify-center pt-[15vh] pb-4 sm:py-12 md:py-20 fade-up">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 dark:text-slate-100 mb-4 sm:mb-8 bg-gradient-to-r from-blue-600 via-purple-500 to-blue-600 bg-clip-text text-transparent gradient-shimmer">
                   {greeting}
                 </h1>
 
                 {/* 搜索框 */}
-                <div className="relative w-full max-w-2xl mx-auto shadow-xl shadow-blue-500/10 rounded-full group focus-within:shadow-2xl focus-within:shadow-blue-500/20 transition-all">
+                <div className="relative w-full max-w-2xl mx-auto shadow-xl shadow-blue-500/10 rounded-full group search-glow transition-all duration-300">
                   {/* 搜索源选择弹出窗口 */}
                   {showSearchSourcePopup && (
                     <div
-                      className="absolute left-0 top-full mt-4 w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 p-4 z-50 animate-in fade-in slide-in-from-top-2"
+                      className="absolute left-0 top-full mt-4 w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 p-4 z-50 scale-in"
                       onMouseEnter={() => setIsPopupHovered(true)}
                       onMouseLeave={() => setIsPopupHovered(false)}
                     >
@@ -963,7 +963,7 @@ function App() {
                     if (catLinks.length === 0 && !isAuthenticated) return null;
 
                     return (
-                      <section key={cat.id} id={`cat-${cat.id}`} className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${index * 50}ms` }}>
+                      <section key={cat.id} id={`cat-${cat.id}`} className="fade-up" style={{ animationDelay: `${index * 60}ms` }}>
                         <div className="flex items-center justify-between gap-2 mb-4 group">
                           <div className="flex items-center gap-2">
                             <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
@@ -1033,7 +1033,7 @@ function App() {
           {/* Mobile FAB: Add Link */}
           <button
             onClick={() => { if (!authToken) setIsAuthOpen(true); else { setEditingLink(undefined); setPrefillLink(undefined); setIsModalOpen(true); } }}
-            className="sm:hidden fixed right-4 bottom-4 z-30 w-14 h-14 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-full shadow-lg shadow-blue-500/30 flex items-center justify-center transition-all safe-area-bottom"
+            className="sm:hidden fixed right-4 bottom-4 z-30 w-14 h-14 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 active:scale-90 text-white rounded-full shadow-lg shadow-blue-500/30 flex items-center justify-center transition-all duration-200 safe-area-bottom fab-pulse"
             style={{ bottom: 'max(1rem, env(safe-area-inset-bottom))' }}
           >
             <Plus size={24} />
