@@ -1,29 +1,11 @@
 
 import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
-import { Search, Plus, Settings, Upload, ArrowRight, Lock, Menu, X, MoreHorizontal, Trash2, FolderInput, CheckSquare } from 'lucide-react';
-import {
-  DndContext,
-  DragEndEvent,
-  closestCenter,
-  PointerSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  KeyboardSensor,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  rectSortingStrategy,
-} from '@dnd-kit/sortable';
+import { Search, Plus, Settings, Upload, ArrowRight, Lock, Menu, X, Trash2, FolderInput, CheckSquare } from 'lucide-react';
 import { LinkItem, Category, DEFAULT_CATEGORIES, SearchMode, SearchConfig, PasswordExpiryConfig } from './types';
 import { createSearchSources, STORAGE_KEYS } from './constants';
 import Icon from './components/Icon';
 import AuthModal from './components/AuthModal';
 import ContextMenu from './components/ContextMenu';
-import SortableLinkCard from './components/SortableLinkCard';
-import ErrorBoundary from './components/ErrorBoundary';
 import LinkCard from './components/LinkCard';
 import { applySiteConfig } from './utils/favicon';
 import { useAppData, safeHostname, ensureProtocol, compareByOrder } from './hooks/useAppData';
@@ -37,7 +19,6 @@ const BackupModal = lazy(() => import('./components/BackupModal'));
 const CategoryAuthModal = lazy(() => import('./components/CategoryAuthModal'));
 const ImportModal = lazy(() => import('./components/ImportModal'));
 const SettingsModal = lazy(() => import('./components/SettingsModal'));
-const SearchConfigModal = lazy(() => import('./components/SearchConfigModal'));
 const QRCodeModal = lazy(() => import('./components/QRCodeModal'));
 
 const AUTH_KEY = STORAGE_KEYS.AUTH_TOKEN;
@@ -95,7 +76,6 @@ function App() {
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  const [isSearchConfigModalOpen, setIsSearchConfigModalOpen] = useState(false);
   const [catAuthModalData, setCatAuthModalData] = useState<Category | null>(null);
 
   const [editingLink, setEditingLink] = useState<LinkItem | undefined>(undefined);
@@ -104,12 +84,7 @@ function App() {
   // Auth State
   const [authToken, setAuthToken] = useState<string>('');
   const [requiresAuth, setRequiresAuth] = useState<boolean | null>(null);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const isAuthenticated = !!authToken;
-
-  // Sort State
-  const [isSortingMode, setIsSortingMode] = useState<string | null>(null);
-  const [isSortingPinned, setIsSortingPinned] = useState(false);
 
   // Mobile Menu State
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -182,7 +157,6 @@ function App() {
           setRequiresAuth(authData.requiresAuth);
 
           if (authData.requiresAuth && !savedToken) {
-            setIsCheckingAuth(false);
             setIsAuthOpen(true);
             return;
           }
@@ -220,7 +194,6 @@ function App() {
               setAuthToken('');
               localStorage.removeItem(AUTH_KEY);
               setIsAuthOpen(true);
-              setIsCheckingAuth(false);
               return;
             }
           } catch { /* ignore */ }
@@ -259,12 +232,11 @@ function App() {
         console.warn("Failed to fetch configs from KV.", e);
       }
 
-      if (hasCloudData) { setIsCheckingAuth(false); return; }
+      if (hasCloudData) return;
 
       loadFromLocal();
       setSearchMode('internal');
       setExternalSearchSources(createSearchSources());
-      setIsCheckingAuth(false);
     };
 
     initData();
@@ -447,83 +419,11 @@ function App() {
     setEditingLink(undefined);
   }, [authToken, editingLink, links, categories, updateData]);
 
-  // --- Drag & Drop ---
-
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const activeIndex = links.findIndex(link => link.id === active.id);
-    const overIndex = links.findIndex(link => link.id === over.id);
-    if (activeIndex !== -1 && overIndex !== -1) {
-      updateData(arrayMove(links, activeIndex, overIndex) as LinkItem[], categories);
-    }
-  }, [links, categories, updateData]);
-
-  const handlePinnedDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const pinnedLinksList = links.filter(link => link.pinned);
-    const activeIndex = pinnedLinksList.findIndex(link => link.id === active.id);
-    const overIndex = pinnedLinksList.findIndex(link => link.id === over.id);
-
-    if (activeIndex !== -1 && overIndex !== -1) {
-      const reordered = arrayMove(pinnedLinksList, activeIndex, overIndex) as LinkItem[];
-      const pinnedOrderMap = new Map<string, number>();
-      reordered.forEach((link, index) => pinnedOrderMap.set(link.id, index));
-
-      // FIX: use [...links].map to avoid mutating state, then sort a new array
-      const updatedLinks = links.map(link =>
-        link.pinned ? { ...link, pinnedOrder: pinnedOrderMap.get(link.id) } : link
-      );
-      const sorted = [...updatedLinks].sort((a, b) => {
-        if (a.pinned && b.pinned) return (a.pinnedOrder || 0) - (b.pinnedOrder || 0);
-        if (a.pinned) return -1;
-        if (b.pinned) return 1;
-        return compareByOrder(a, b);
-      });
-      updateData(sorted, categories);
-    }
-  }, [links, categories, updateData]);
-
-  const saveSorting = useCallback(() => {
-    updateData(links, categories);
-    setIsSortingMode(null);
-  }, [links, categories, updateData]);
-
-  const savePinnedSorting = useCallback(() => {
-    updateData(links, categories);
-    setIsSortingPinned(false);
-  }, [links, categories, updateData]);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
-
   const handleDeleteLink = useCallback((id: string) => {
     if (!authToken) { setIsAuthOpen(true); return; }
     if (confirm('确定删除此链接吗?')) {
       updateData(links.filter(l => l.id !== id), categories);
     }
-  }, [authToken, links, categories, updateData]);
-
-  // Unified togglePin (removed duplicate togglePinFromContextMenu)
-  const togglePin = useCallback((id: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!authToken) { setIsAuthOpen(true); return; }
-
-    const updated = links.map(l => {
-      if (l.id === id) {
-        const isPinned = !l.pinned;
-        return { ...l, pinned: isPinned, pinnedOrder: isPinned ? links.filter(lk => lk.pinned).length : undefined };
-      }
-      return l;
-    });
-    updateData(updated, categories);
   }, [authToken, links, categories, updateData]);
 
   const handleSavePasswordExpiryConfig = useCallback(async (config: PasswordExpiryConfig) => {
@@ -558,12 +458,6 @@ function App() {
     updateData(newLinks, newCats);
   }, [authToken, categories, links, updateData]);
 
-  // --- Search Config wrappers ---
-  const handleSaveSearchConfigWrapper = useCallback(
-    (sources: any[], mode: SearchMode) => handleSaveSearchConfig(sources, mode, authToken),
-    [handleSaveSearchConfig, authToken],
-  );
-
   const handleSearchSourceSelectWrapper = useCallback(
     (source: any) => handleSearchSourceSelect(source, authToken),
     [handleSearchSourceSelect, authToken],
@@ -585,19 +479,6 @@ function App() {
     if (!cat || !cat.password) return false;
     return !unlockedCategoryIds.has(catId);
   }, [categories, unlockedCategoryIds]);
-
-  // FIX: use [...arr].sort() to avoid mutating state in useMemo
-  const pinnedLinks = useMemo(() => {
-    return links
-      .filter(l => l.pinned && !isCategoryLocked(l.categoryId))
-      .slice() // create new array before sorting
-      .sort((a, b) => {
-        if (a.pinnedOrder !== undefined && b.pinnedOrder !== undefined) return a.pinnedOrder - b.pinnedOrder;
-        if (a.pinnedOrder !== undefined) return -1;
-        if (b.pinnedOrder !== undefined) return 1;
-        return a.createdAt - b.createdAt;
-      });
-  }, [links, categories, unlockedCategoryIds, isCategoryLocked]);
 
   const displayedLinks = useMemo(() => {
     let result = links.filter(l => !isCategoryLocked(l.categoryId));
@@ -723,15 +604,6 @@ function App() {
                 onSavePasswordExpiry={handleSavePasswordExpiryConfig}
                 siteConfig={siteConfig}
                 onSaveSiteConfig={handleSaveSiteConfig}
-              />
-            )}
-
-            {isSearchConfigModalOpen && (
-              <SearchConfigModal
-                isOpen={isSearchConfigModalOpen}
-                onClose={() => setIsSearchConfigModalOpen(false)}
-                sources={externalSearchSources}
-                onSave={(sources) => handleSaveSearchConfigWrapper(sources, searchMode)}
               />
             )}
           </Suspense>
