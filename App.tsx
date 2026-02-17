@@ -462,7 +462,7 @@ function App() {
 
     setIsAiSorting(true);
     try {
-      const result = await aiSortLinks(links, categories, aiSortConfig);
+      const result = await aiSortLinks(links, categories, aiSortConfig, authToken);
       updateData(result.links, result.categories);
       const msg = result.newCategoriesCreated.length > 0
         ? `AI 整理完成！新建了 ${result.newCategoriesCreated.length} 个分类：${result.newCategoriesCreated.join('、')}`
