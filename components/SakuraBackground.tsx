@@ -1,8 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-// ---- Types ----
-
-type PetalType = 'flower' | 'single' | 'tiny';
+// ==================== Types ====================
 
 interface Petal {
   x: number;
@@ -10,163 +8,165 @@ interface Petal {
   size: number;
   speedY: number;
   speedX: number;
-  rotation: number;
-  rotationSpeed: number;
+  rot: number;
+  rotSpeed: number;
   opacity: number;
-  swingAmplitude: number;
-  swingSpeed: number;
   phase: number;
-  type: PetalType;
+  swingFreq: number;
+  swingAmp: number;
+  flipAngle: number;
+  flipSpeed: number;
+  curlAngle: number;
+  curlSpeed: number;
   colorIdx: number;
-  tilt3d: number;       // simulate 3D tilt for depth
-  tiltSpeed: number;
+  variant: number;
 }
 
-// ---- Config ----
-
-const PETAL_COUNT = 40;
+// ==================== Palette ====================
+// Real Somei Yoshino cherry blossoms: very pale pink to white
 
 const PALETTE = [
-  { outer: '#ffb7c5', inner: '#ffe0e6', center: '#fff5f7', glow: 'rgba(255,183,197,0.4)' },
-  { outer: '#ff9bb3', inner: '#ffd1dc', center: '#fff0f3', glow: 'rgba(255,155,179,0.35)' },
-  { outer: '#ffa5ba', inner: '#ffdbe4', center: '#fff8fa', glow: 'rgba(255,165,186,0.3)' },
-  { outer: '#f7a0b5', inner: '#fcc8d5', center: '#fff2f5', glow: 'rgba(247,160,181,0.35)' },
-  { outer: '#ffcad4', inner: '#ffe8ed', center: '#fffbfc', glow: 'rgba(255,202,212,0.3)' },
+  { edge: '#f8b4c8', mid: '#fdd5e0', base: '#fff3f6', vein: '#f4a0b8' },
+  { edge: '#f5a3b8', mid: '#fccdd8', base: '#fff0f4', vein: '#ee90a8' },
+  { edge: '#fcc', mid: '#ffe0e8', base: '#fff8fa', vein: '#f7b0c0' },
+  { edge: '#f0a0b5', mid: '#f8c8d5', base: '#fef0f4', vein: '#e890a5' },
+  { edge: '#ffc0d0', mid: '#ffe5ec', base: '#fffbfc', vein: '#f5a8b8' },
 ];
 
-// ---- Helpers ----
+const PETAL_COUNT = 38;
 
-function createPetal(w: number, h: number, fromTop: boolean): Petal {
-  const types: PetalType[] = ['flower', 'single', 'single', 'single', 'tiny', 'tiny'];
-  const type = types[Math.floor(Math.random() * types.length)];
-  const baseSize = type === 'flower' ? 14 + Math.random() * 10 : type === 'single' ? 8 + Math.random() * 10 : 4 + Math.random() * 5;
+// ==================== Create ====================
 
+function create(w: number, h: number, top: boolean): Petal {
   return {
     x: Math.random() * w,
-    y: fromTop ? -30 - Math.random() * 60 : Math.random() * h,
-    size: baseSize,
-    speedY: 0.25 + Math.random() * 0.6,
-    speedX: -0.15 + Math.random() * 0.3,
-    rotation: Math.random() * 360,
-    rotationSpeed: -0.6 + Math.random() * 1.2,
-    opacity: type === 'tiny' ? 0.4 + Math.random() * 0.3 : 0.6 + Math.random() * 0.4,
-    swingAmplitude: 15 + Math.random() * 35,
-    swingSpeed: 0.008 + Math.random() * 0.015,
+    y: top ? -(20 + Math.random() * 50) : Math.random() * h,
+    size: 10 + Math.random() * 14,
+    speedY: 0.2 + Math.random() * 0.55,
+    speedX: -0.1 + Math.random() * 0.25,
+    rot: Math.random() * Math.PI * 2,
+    rotSpeed: (-0.4 + Math.random() * 0.8) * 0.02,
+    opacity: 0.55 + Math.random() * 0.4,
     phase: Math.random() * Math.PI * 2,
-    type,
+    swingFreq: 0.006 + Math.random() * 0.012,
+    swingAmp: 0.4 + Math.random() * 0.8,
+    flipAngle: Math.random() * Math.PI * 2,
+    flipSpeed: 0.008 + Math.random() * 0.018,
+    curlAngle: Math.random() * Math.PI * 2,
+    curlSpeed: 0.005 + Math.random() * 0.012,
     colorIdx: Math.floor(Math.random() * PALETTE.length),
-    tilt3d: Math.random() * Math.PI * 2,
-    tiltSpeed: 0.01 + Math.random() * 0.02,
+    variant: Math.floor(Math.random() * 4),
   };
 }
 
-/** Draw a single petal shape (leaf-like) */
-function drawSinglePetal(ctx: CanvasRenderingContext2D, s: number, color: typeof PALETTE[0]) {
-  // Glow
-  ctx.shadowColor = color.glow;
-  ctx.shadowBlur = s * 0.8;
+// ==================== Draw ====================
 
-  // Gradient fill
-  const grad = ctx.createRadialGradient(s * 0.35, 0, 0, s * 0.4, 0, s * 0.7);
-  grad.addColorStop(0, color.center);
-  grad.addColorStop(0.4, color.inner);
-  grad.addColorStop(1, color.outer);
+function drawPetal(ctx: CanvasRenderingContext2D, p: Petal, t: number) {
+  const s = p.size;
+  const c = PALETTE[p.colorIdx];
+  const flipScale = 0.35 + Math.abs(Math.cos(p.flipAngle)) * 0.65;
+  const curlVal = Math.sin(p.curlAngle) * 0.25;
+  const notchDepth = s * (0.06 + p.variant * 0.02);
+  const bodyW = s * 0.42;
+
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(p.rot);
+  ctx.scale(flipScale, 1);
+  ctx.globalAlpha = p.opacity;
+
+  // Soft glow
+  ctx.shadowColor = 'rgba(255,180,200,0.25)';
+  ctx.shadowBlur = s * 0.6;
+  ctx.shadowOffsetY = s * 0.1;
+
+  // Main petal gradient: stem(white) → tip(pink)
+  const grad = ctx.createLinearGradient(0, 0, s, 0);
+  grad.addColorStop(0, c.base);
+  grad.addColorStop(0.3, c.base);
+  grad.addColorStop(0.65, c.mid);
+  grad.addColorStop(1, c.edge);
   ctx.fillStyle = grad;
 
+  // Petal shape: narrow stem → wide body → notched heart tip
   ctx.beginPath();
   ctx.moveTo(0, 0);
-  ctx.bezierCurveTo(s * 0.15, -s * 0.35, s * 0.65, -s * 0.35, s, 0);
-  ctx.bezierCurveTo(s * 0.65, s * 0.35, s * 0.15, s * 0.35, 0, 0);
+  // Upper edge
+  ctx.bezierCurveTo(s * 0.2, -bodyW * 0.3, s * 0.45, -bodyW, s * 0.75, -bodyW * 0.85);
+  ctx.quadraticCurveTo(s * 0.92, -bodyW * 0.35, s, -notchDepth);
+  // Heart notch
+  ctx.quadraticCurveTo(s * 0.96, 0, s, notchDepth);
+  // Lower edge
+  ctx.quadraticCurveTo(s * 0.92, bodyW * 0.35, s * 0.75, bodyW * 0.85);
+  ctx.bezierCurveTo(s * 0.45, bodyW, s * 0.2, bodyW * 0.3, 0, 0);
+  ctx.closePath();
   ctx.fill();
 
+  ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
 
-  // Vein line
-  ctx.strokeStyle = color.inner;
-  ctx.lineWidth = 0.5;
-  ctx.globalAlpha *= 0.5;
+  // Veins
+  ctx.globalAlpha = p.opacity * 0.2;
+  ctx.strokeStyle = c.vein;
+  ctx.lineWidth = 0.4;
+  ctx.lineCap = 'round';
+
+  // Center vein
   ctx.beginPath();
   ctx.moveTo(s * 0.05, 0);
-  ctx.quadraticCurveTo(s * 0.5, -s * 0.03, s * 0.9, 0);
+  ctx.quadraticCurveTo(s * 0.5, 0, s * 0.92, 0);
   ctx.stroke();
-}
 
-/** Draw a five-petal sakura flower */
-function drawFlower(ctx: CanvasRenderingContext2D, s: number, color: typeof PALETTE[0]) {
-  const petalLen = s * 0.7;
+  // Side veins
+  for (const sign of [-1, 1]) {
+    ctx.beginPath();
+    ctx.moveTo(s * 0.25, 0);
+    ctx.quadraticCurveTo(s * 0.5, sign * bodyW * 0.35, s * 0.72, sign * bodyW * 0.55);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(s * 0.45, 0);
+    ctx.quadraticCurveTo(s * 0.65, sign * bodyW * 0.25, s * 0.82, sign * bodyW * 0.45);
+    ctx.stroke();
+  }
 
-  // Glow
-  ctx.shadowColor = color.glow;
-  ctx.shadowBlur = s * 1.2;
+  // Curl / fold highlight
+  if (Math.abs(curlVal) > 0.05) {
+    ctx.globalAlpha = p.opacity * Math.abs(curlVal) * 0.6;
+    const side = curlVal > 0 ? -1 : 1;
+    const curlGrad = ctx.createLinearGradient(s * 0.3, 0, s * 0.9, side * bodyW * -0.6);
+    curlGrad.addColorStop(0, 'rgba(255,255,255,0)');
+    curlGrad.addColorStop(0.5, 'rgba(255,255,255,0.6)');
+    curlGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = curlGrad;
 
-  for (let i = 0; i < 5; i++) {
-    ctx.save();
-    ctx.rotate((i * Math.PI * 2) / 5);
-
-    // Each petal with a gradient
-    const grad = ctx.createRadialGradient(petalLen * 0.3, 0, 0, petalLen * 0.4, 0, petalLen * 0.6);
-    grad.addColorStop(0, color.center);
-    grad.addColorStop(0.5, color.inner);
-    grad.addColorStop(1, color.outer);
-    ctx.fillStyle = grad;
-
-    // Heart-shaped petal tip (notched)
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.bezierCurveTo(petalLen * 0.3, -petalLen * 0.4, petalLen * 0.8, -petalLen * 0.25, petalLen * 0.85, -petalLen * 0.05);
-    ctx.quadraticCurveTo(petalLen * 0.95, 0, petalLen * 0.85, petalLen * 0.05);
-    ctx.bezierCurveTo(petalLen * 0.8, petalLen * 0.25, petalLen * 0.3, petalLen * 0.4, 0, 0);
-    ctx.fill();
-
-    ctx.restore();
-  }
-
-  ctx.shadowBlur = 0;
-
-  // Center pistil
-  const centerGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, s * 0.12);
-  centerGrad.addColorStop(0, '#ffe082');
-  centerGrad.addColorStop(0.6, '#ffcc33');
-  centerGrad.addColorStop(1, '#f0a030');
-  ctx.fillStyle = centerGrad;
-  ctx.beginPath();
-  ctx.arc(0, 0, s * 0.1, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Tiny stamens
-  ctx.fillStyle = '#f0a030';
-  for (let i = 0; i < 5; i++) {
-    const angle = (i * Math.PI * 2) / 5 + Math.PI / 5;
-    const dx = Math.cos(angle) * s * 0.16;
-    const dy = Math.sin(angle) * s * 0.16;
-    ctx.beginPath();
-    ctx.arc(dx, dy, s * 0.025, 0, Math.PI * 2);
+    ctx.bezierCurveTo(s * 0.2, side * bodyW * -0.3, s * 0.45, side * bodyW * -1, s * 0.75, side * bodyW * -0.85);
+    ctx.quadraticCurveTo(s * 0.92, side * bodyW * -0.35, s, side * -notchDepth);
+    ctx.quadraticCurveTo(s * 0.96, 0, s * 0.5, 0);
+    ctx.closePath();
     ctx.fill();
   }
-}
 
-/** Draw tiny dot petal */
-function drawTiny(ctx: CanvasRenderingContext2D, s: number, color: typeof PALETTE[0]) {
-  ctx.shadowColor = color.glow;
-  ctx.shadowBlur = s * 2;
-  const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, s);
-  grad.addColorStop(0, color.center);
-  grad.addColorStop(0.5, color.inner);
-  grad.addColorStop(1, color.outer);
-  ctx.fillStyle = grad;
+  // Edge rim light
+  ctx.globalAlpha = p.opacity * 0.1;
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 0.6;
   ctx.beginPath();
-  ctx.arc(0, 0, s, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
+  ctx.moveTo(s * 0.5, -bodyW * 0.95);
+  ctx.quadraticCurveTo(s * 0.85, -bodyW * 0.5, s, -notchDepth);
+  ctx.stroke();
+
+  ctx.restore();
 }
 
-// ---- Component ----
+// ==================== Component ====================
 
 const SakuraBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const petalsRef = useRef<Petal[]>([]);
   const frameRef = useRef<number>(0);
-  const timeRef = useRef<number>(0);
+  const tRef = useRef<number>(0);
 
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -176,10 +176,8 @@ const SakuraBackground: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let dpr = window.devicePixelRatio || 1;
-
     const resize = () => {
-      dpr = window.devicePixelRatio || 1;
+      const dpr = window.devicePixelRatio || 1;
       canvas.width = window.innerWidth * dpr;
       canvas.height = window.innerHeight * dpr;
       canvas.style.width = window.innerWidth + 'px';
@@ -189,51 +187,36 @@ const SakuraBackground: React.FC = () => {
     resize();
     window.addEventListener('resize', resize);
 
-    petalsRef.current = Array.from({ length: PETAL_COUNT }, () =>
-      createPetal(window.innerWidth, window.innerHeight, false)
-    );
+    const w = () => window.innerWidth;
+    const h = () => window.innerHeight;
+
+    petalsRef.current = Array.from({ length: PETAL_COUNT }, () => create(w(), h(), false));
 
     const animate = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      timeRef.current += 1;
+      tRef.current += 1;
+      const t = tRef.current;
+      ctx.clearRect(0, 0, w(), h());
 
-      ctx.clearRect(0, 0, w, h);
+      for (let i = 0; i < petalsRef.current.length; i++) {
+        const p = petalsRef.current[i];
 
-      petalsRef.current.forEach((p, i) => {
-        // Physics
-        p.y += p.speedY;
-        p.x += p.speedX + Math.sin(timeRef.current * p.swingSpeed + p.phase) * 0.6;
-        p.rotation += p.rotationSpeed;
-        p.tilt3d += p.tiltSpeed;
+        // Natural movement
+        const drift = Math.sin(t * p.swingFreq + p.phase) * p.swingAmp;
+        const gustX = Math.sin(t * 0.002 + p.phase * 2) * 0.15;
 
-        // 3D tilt effect — scale X to simulate depth rotation
-        const scaleX = 0.4 + Math.abs(Math.cos(p.tilt3d)) * 0.6;
+        p.x += p.speedX + drift + gustX;
+        p.y += p.speedY + Math.cos(t * p.swingFreq * 0.7 + p.phase) * 0.08;
+        p.rot += p.rotSpeed + drift * 0.005;
+        p.flipAngle += p.flipSpeed;
+        p.curlAngle += p.curlSpeed;
 
-        // Reset if out of bounds
-        if (p.y > h + 40 || p.x < -40 || p.x > w + 40) {
-          petalsRef.current[i] = createPetal(w, h, true);
-          return;
+        if (p.y > h() + 50 || p.x < -50 || p.x > w() + 50) {
+          petalsRef.current[i] = create(w(), h(), true);
+          continue;
         }
 
-        const color = PALETTE[p.colorIdx];
-
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate((p.rotation * Math.PI) / 180);
-        ctx.scale(scaleX, 1);
-        ctx.globalAlpha = p.opacity;
-
-        if (p.type === 'flower') {
-          drawFlower(ctx, p.size, color);
-        } else if (p.type === 'single') {
-          drawSinglePetal(ctx, p.size, color);
-        } else {
-          drawTiny(ctx, p.size, color);
-        }
-
-        ctx.restore();
-      });
+        drawPetal(ctx, p, t);
+      }
 
       frameRef.current = requestAnimationFrame(animate);
     };
