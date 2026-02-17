@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, Dispatch, SetStateAction } from 'react';
-import { LinkItem, Category, DEFAULT_CATEGORIES, INITIAL_LINKS, PasswordExpiryConfig, SiteConfig, WebDavConfig } from '../types';
+import { LinkItem, Category, DEFAULT_CATEGORIES, INITIAL_LINKS, PasswordExpiryConfig, SiteConfig, WebDavConfig, AiSortConfig } from '../types';
 import { STORAGE_KEYS } from '../constants';
 import { applySiteConfig } from '../utils/favicon';
 
@@ -83,6 +83,10 @@ interface UseAppDataReturn {
   setPasswordExpiryConfig: Dispatch<SetStateAction<PasswordExpiryConfig>>;
   setSiteConfig: Dispatch<SetStateAction<SiteConfig>>;
 
+  // AI Sort Config
+  aiSortConfig: AiSortConfig;
+  setAiSortConfig: Dispatch<SetStateAction<AiSortConfig>>;
+
   // Actions
   loadFromLocal: () => void;
   updateData: (links: LinkItem[], categories: Category[], authToken: string) => void;
@@ -91,6 +95,7 @@ interface UseAppDataReturn {
   handleSaveWebDavConfig: (config: WebDavConfig) => void;
   handleSavePasswordExpiryConfig: (config: PasswordExpiryConfig, authToken: string) => Promise<void>;
   handleSaveSiteConfig: (config: SiteConfig, authToken: string) => Promise<void>;
+  handleSaveAiSortConfig: (config: AiSortConfig, authToken: string) => Promise<void>;
 }
 
 export function useAppData(): UseAppDataReturn {
@@ -105,6 +110,9 @@ export function useAppData(): UseAppDataReturn {
     value: 1, unit: 'week',
   });
   const [siteConfig, setSiteConfig] = useState<SiteConfig>({});
+  const [aiSortConfig, setAiSortConfig] = useState<AiSortConfig>({
+    apiUrl: '', apiKey: '', model: '',
+  });
 
   // 使用 ref 跟踪最新版本号，避免闭包过期
   const versionRef = useRef(appDataVersion);
@@ -270,6 +278,24 @@ export function useAppData(): UseAppDataReturn {
     }
   }, []);
 
+  const handleSaveAiSortConfig = useCallback(async (config: AiSortConfig, authToken: string) => {
+    setAiSortConfig(config);
+    if (!authToken) return;
+    try {
+      const response = await fetch('/api/storage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-password': authToken,
+        },
+        body: JSON.stringify({ saveConfig: 'ai', config }),
+      });
+      if (!response.ok) console.error('Failed to save AI sort config');
+    } catch (error) {
+      console.error('Error saving AI sort config:', error);
+    }
+  }, []);
+
   const handleSaveSiteConfig = useCallback(async (config: SiteConfig, authToken: string) => {
     setSiteConfig(config);
     applySiteConfig(config);
@@ -291,10 +317,11 @@ export function useAppData(): UseAppDataReturn {
 
   return {
     links, categories, syncStatus, appDataVersion, webDavConfig,
-    passwordExpiryConfig, siteConfig,
+    passwordExpiryConfig, siteConfig, aiSortConfig,
     setLinks, setCategories, setSyncStatus, setAppDataVersion,
-    setPasswordExpiryConfig, setSiteConfig,
+    setPasswordExpiryConfig, setSiteConfig, setAiSortConfig,
     loadFromLocal, updateData, syncToCloud, loadLinkIcons,
     handleSaveWebDavConfig, handleSavePasswordExpiryConfig, handleSaveSiteConfig,
+    handleSaveAiSortConfig,
   };
 }

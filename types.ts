@@ -74,6 +74,13 @@ export interface SearchConfig {
   selectedSource?: ExternalSearchSource | null; // 选中的搜索源
 }
 
+// AI 自动排序配置
+export interface AiSortConfig {
+  apiUrl: string;      // AI API 地址
+  apiKey: string;      // API Key
+  model: string;       // 模型名称
+}
+
 export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'common', name: '常用推荐', icon: 'Star' },
   { id: 'dev', name: '开发工具', icon: 'Code' },

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Wrench, Box, Copy, Check, Clock, Globe } from 'lucide-react';
-import { PasswordExpiryConfig, SiteConfig } from '../types';
+import { X, Save, Wrench, Box, Copy, Check, Clock, Globe, Bot } from 'lucide-react';
+import { PasswordExpiryConfig, SiteConfig, AiSortConfig } from '../types';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -9,14 +9,17 @@ interface SettingsModalProps {
     onSavePasswordExpiry: (config: PasswordExpiryConfig) => void;
     siteConfig: SiteConfig;
     onSaveSiteConfig: (config: SiteConfig) => void;
+    aiSortConfig: AiSortConfig;
+    onSaveAiSortConfig: (config: AiSortConfig) => void;
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({
-    isOpen, onClose, passwordExpiryConfig, onSavePasswordExpiry, siteConfig, onSaveSiteConfig
+    isOpen, onClose, passwordExpiryConfig, onSavePasswordExpiry, siteConfig, onSaveSiteConfig, aiSortConfig, onSaveAiSortConfig
 }) => {
-    const [activeTab, setActiveTab] = useState<'tools' | 'website' | 'settings'>('tools');
+    const [activeTab, setActiveTab] = useState<'tools' | 'website' | 'settings' | 'ai'>('tools');
     const [localPasswordExpiryConfig, setLocalPasswordExpiryConfig] = useState<PasswordExpiryConfig>(passwordExpiryConfig);
     const [localSiteConfig, setLocalSiteConfig] = useState<SiteConfig>(siteConfig);
+    const [localAiSortConfig, setLocalAiSortConfig] = useState<AiSortConfig>(aiSortConfig);
 
     // Tools State
     const [password, setPassword] = useState('');
@@ -29,11 +32,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         if (isOpen) {
             setLocalPasswordExpiryConfig(passwordExpiryConfig);
             setLocalSiteConfig(siteConfig);
+            setLocalAiSortConfig(aiSortConfig);
             setDomain(window.location.origin);
             const storedToken = localStorage.getItem('cloudnav_auth_token');
             if (storedToken) setPassword(storedToken);
         }
-    }, [isOpen, passwordExpiryConfig, siteConfig]);
+    }, [isOpen, passwordExpiryConfig, siteConfig, aiSortConfig]);
 
     const handlePasswordExpiryChange = (key: keyof PasswordExpiryConfig, value: string | number) => {
         setLocalPasswordExpiryConfig(prev => ({ ...prev, [key]: value }));
@@ -43,9 +47,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         setLocalSiteConfig(prev => ({ ...prev, [key]: value }));
     };
 
+    const handleAiConfigChange = (key: keyof AiSortConfig, value: string) => {
+        setLocalAiSortConfig(prev => ({ ...prev, [key]: value }));
+    };
+
     const handleSave = () => {
         onSavePasswordExpiry(localPasswordExpiryConfig);
         onSaveSiteConfig(localSiteConfig);
+        onSaveAiSortConfig(localAiSortConfig);
         onClose();
     };
 
@@ -162,7 +171,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg overflow-hidden border border-slate-200 dark:border-slate-700 flex flex-col max-h-[90vh] safe-area-bottom">
 
                 <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700 shrink-0">
-                    <div className="flex gap-4">
+                    <div className="flex gap-3 sm:gap-4 overflow-x-auto flex-nowrap">
                         <button
                             onClick={() => setActiveTab('tools')}
                             className={`text-sm font-semibold flex items-center gap-2 pb-1 transition-colors ${activeTab === 'tools' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' : 'text-slate-500 dark:text-slate-400'}`}
@@ -180,6 +189,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                             className={`text-sm font-semibold flex items-center gap-2 pb-1 transition-colors ${activeTab === 'settings' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' : 'text-slate-500 dark:text-slate-400'}`}
                         >
                             <Clock size={18} /> 密码设置
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('ai')}
+                            className={`text-sm font-semibold flex items-center gap-2 pb-1 transition-colors ${activeTab === 'ai' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' : 'text-slate-500 dark:text-slate-400'}`}
+                        >
+                            <Bot size={18} /> AI 排序
                         </button>
                     </div>
                     <button onClick={onClose} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
@@ -294,6 +309,53 @@ document.addEventListener('DOMContentLoaded', async () => {
                         </div>
                     )}
 
+                    {activeTab === 'ai' && (
+                        <div className="space-y-6">
+                            <div>
+                                <h4 className="font-bold dark:text-white mb-3 text-sm flex items-center gap-2">
+                                    <Bot size={16} /> AI 智能排序配置
+                                </h4>
+                                <p className="text-xs text-slate-500 mb-4">
+                                    配置 AI API 后，可一键智能整理书签分类和排序。支持 OpenAI 兼容接口（如 OpenAI、DeepSeek、Gemini 等）。
+                                </p>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-500 mb-1">API 地址</label>
+                                        <input
+                                            type="url"
+                                            value={localAiSortConfig.apiUrl}
+                                            onChange={(e) => handleAiConfigChange('apiUrl', e.target.value)}
+                                            placeholder="https://api.openai.com/v1/chat/completions"
+                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm"
+                                        />
+                                        <p className="text-xs text-slate-400 mt-1">支持 OpenAI 兼容的 /v1/chat/completions 接口</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-500 mb-1">API Key</label>
+                                        <input
+                                            type="password"
+                                            value={localAiSortConfig.apiKey}
+                                            onChange={(e) => handleAiConfigChange('apiKey', e.target.value)}
+                                            placeholder="sk-..."
+                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-slate-500 mb-1">模型</label>
+                                        <input
+                                            type="text"
+                                            value={localAiSortConfig.model}
+                                            onChange={(e) => handleAiConfigChange('model', e.target.value)}
+                                            placeholder="gpt-4o-mini"
+                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm"
+                                        />
+                                        <p className="text-xs text-slate-400 mt-1">如 gpt-4o-mini、deepseek-chat、gemini-2.0-flash 等</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {activeTab === 'settings' && (
                         <div className="space-y-6">
                             <div>
@@ -334,7 +396,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     )}
                 </div>
 
-                {(activeTab === 'settings' || activeTab === 'website') && (
+                {(activeTab === 'settings' || activeTab === 'website' || activeTab === 'ai') && (
                     <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3 shrink-0">
                         <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg">取消</button>
                         <button onClick={handleSave} className="px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-lg flex items-center gap-2 font-medium">

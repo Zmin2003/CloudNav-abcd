@@ -1,13 +1,15 @@
 
 import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
-import { Search, Plus, Settings, Upload, ArrowRight, Lock, Menu, X, Trash2, FolderInput, CheckSquare } from 'lucide-react';
-import { LinkItem, Category, DEFAULT_CATEGORIES, SearchMode, SearchConfig, PasswordExpiryConfig } from './types';
+import { Search, Plus, Settings, Upload, ArrowRight, Lock, Menu, X, Trash2, FolderInput, CheckSquare, Bot, Loader2 } from 'lucide-react';
+import { LinkItem, Category, DEFAULT_CATEGORIES, SearchMode, SearchConfig, PasswordExpiryConfig, AiSortConfig } from './types';
 import { createSearchSources, STORAGE_KEYS } from './constants';
 import Icon from './components/Icon';
 import AuthModal from './components/AuthModal';
 import ContextMenu from './components/ContextMenu';
 import LinkCard from './components/LinkCard';
 import { applySiteConfig } from './utils/favicon';
+import SakuraBackground from './components/SakuraBackground';
+import { aiSortLinks } from './services/aiSortService';
 import { useAppData, safeHostname, ensureProtocol, compareByOrder } from './hooks/useAppData';
 import { useSearch } from './hooks/useSearch';
 import { useContextMenu } from './hooks/useContextMenu';
@@ -42,10 +44,10 @@ function App() {
   // --- Custom Hooks ---
   const appData = useAppData();
   const {
-    links, categories, syncStatus, webDavConfig, passwordExpiryConfig, siteConfig,
-    setLinks, setCategories, setAppDataVersion, setPasswordExpiryConfig, setSiteConfig,
+    links, categories, syncStatus, webDavConfig, passwordExpiryConfig, siteConfig, aiSortConfig,
+    setLinks, setCategories, setAppDataVersion, setPasswordExpiryConfig, setSiteConfig, setAiSortConfig,
     loadFromLocal, syncToCloud, loadLinkIcons,
-    handleSaveWebDavConfig,
+    handleSaveWebDavConfig, handleSaveAiSortConfig,
   } = appData;
 
   const search = useSearch();
@@ -92,6 +94,9 @@ function App() {
   // Batch Edit State
   const [isBatchEditMode, setIsBatchEditMode] = useState(false);
   const [selectedLinks, setSelectedLinks] = useState<Set<string>>(new Set());
+
+  // AI Sort State
+  const [isAiSorting, setIsAiSorting] = useState(false);
 
   // --- Wrapper: updateData with current authToken ---
   const updateData = useCallback((newLinks: LinkItem[], newCategories: Category[]) => {
@@ -204,10 +209,11 @@ function App() {
 
       // 并行请求所有配置
       try {
-        const [searchConfigRes, websiteConfigRes, siteConfigRes] = await Promise.all([
+        const [searchConfigRes, websiteConfigRes, siteConfigRes, aiSortConfigRes] = await Promise.all([
           fetch('/api/storage?getConfig=search'),
           fetch('/api/storage?getConfig=website'),
           fetch('/api/storage?getConfig=site'),
+          fetch('/api/storage?getConfig=ai'),
         ]);
 
         if (searchConfigRes.ok) {
@@ -227,6 +233,13 @@ function App() {
         if (siteConfigRes.ok) {
           const d = await siteConfigRes.json();
           if (d) { setSiteConfig(d); applySiteConfig(d); }
+        }
+
+        if (aiSortConfigRes.ok) {
+          const d = await aiSortConfigRes.json();
+          if (d && (d.apiUrl || d.apiKey || d.model)) {
+            setAiSortConfig(d);
+          }
         }
       } catch (e) {
         console.warn("Failed to fetch configs from KV.", e);
@@ -434,6 +447,35 @@ function App() {
     await appData.handleSaveSiteConfig(config, authToken);
   }, [appData.handleSaveSiteConfig, authToken]);
 
+  const handleSaveAiSortConfigWrapper = useCallback(async (config: AiSortConfig) => {
+    await handleSaveAiSortConfig(config, authToken);
+  }, [handleSaveAiSortConfig, authToken]);
+
+  const handleAiSort = useCallback(async () => {
+    if (!authToken) { setIsAuthOpen(true); return; }
+    if (!aiSortConfig.apiUrl || !aiSortConfig.apiKey || !aiSortConfig.model) {
+      alert('请先在设置 → AI 排序中配置 API 地址、Key 和模型');
+      return;
+    }
+    if (links.length === 0) { alert('没有书签可以整理'); return; }
+    if (!confirm(`将使用 AI 对 ${links.length} 个书签进行智能分类和排序，常用推荐分类的书签不会被移动。是否继续？`)) return;
+
+    setIsAiSorting(true);
+    try {
+      const result = await aiSortLinks(links, categories, aiSortConfig);
+      updateData(result.links, result.categories);
+      const msg = result.newCategoriesCreated.length > 0
+        ? `AI 整理完成！新建了 ${result.newCategoriesCreated.length} 个分类：${result.newCategoriesCreated.join('、')}`
+        : 'AI 整理完成！书签已重新分类和排序。';
+      alert(msg);
+    } catch (error: any) {
+      alert(`AI 整理失败：${error.message || '未知错误'}`);
+      console.error('AI sort error:', error);
+    } finally {
+      setIsAiSorting(false);
+    }
+  }, [authToken, aiSortConfig, links, categories, updateData]);
+
   // --- Category Management ---
 
   const handleUnlockCategory = useCallback((catId: string) => {
@@ -525,6 +567,8 @@ function App() {
 
   return (
     <div className="flex h-screen overflow-hidden text-slate-900 dark:text-slate-50">
+      {/* 樱花飘落背景 */}
+      <SakuraBackground />
       {/* 认证遮罩层 */}
       {requiresAuth && !authToken && (
         <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 flex items-center justify-center">
@@ -604,12 +648,14 @@ function App() {
                 onSavePasswordExpiry={handleSavePasswordExpiryConfig}
                 siteConfig={siteConfig}
                 onSaveSiteConfig={handleSaveSiteConfig}
+                aiSortConfig={aiSortConfig}
+                onSaveAiSortConfig={handleSaveAiSortConfigWrapper}
               />
             )}
           </Suspense>
 
           {/* Main Content */}
-          <main className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-900 overflow-y-auto relative w-full">
+          <main className="flex-1 flex flex-col h-full bg-slate-50/80 dark:bg-slate-900/80 overflow-y-auto relative w-full">
 
             {/* Header */}
             <header className="h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between bg-white/95 dark:bg-slate-800/95 sm:bg-white/80 sm:dark:bg-slate-800/80 backdrop-blur-sm sm:backdrop-blur-md border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shrink-0 safe-area-top safe-area-x">
@@ -645,6 +691,14 @@ function App() {
                   className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full border border-slate-200 dark:border-slate-600 transition-all"
                 >
                   <Settings size={14} /> 分类
+                </button>
+                <button
+                  onClick={handleAiSort}
+                  disabled={isAiSorting}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full transition-all disabled:opacity-60"
+                  title="AI 智能整理书签"
+                >
+                  {isAiSorting ? <Loader2 size={14} className="animate-spin" /> : <Bot size={14} />} AI 整理
                 </button>
               </div>
 
@@ -695,6 +749,13 @@ function App() {
                   }`}
                 >
                   <CheckSquare size={16} /> 批量编辑
+                </button>
+                <button
+                  onClick={() => { handleAiSort(); setIsMobileMenuOpen(false); }}
+                  disabled={isAiSorting}
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg active:from-purple-600 active:to-pink-600 transition-colors disabled:opacity-60"
+                >
+                  {isAiSorting ? <Loader2 size={16} className="animate-spin" /> : <Bot size={16} />} AI 整理
                 </button>
               </div>
             )}
