@@ -14,25 +14,26 @@ interface Petal {
   phase: number;
 }
 
-const PETAL_COUNT = 25;
+const PETAL_COUNT = 45;
 const COLORS = [
-  'rgba(255, 183, 197, 0.7)',
-  'rgba(255, 192, 203, 0.6)',
-  'rgba(255, 170, 190, 0.5)',
-  'rgba(252, 200, 210, 0.6)',
-  'rgba(255, 160, 180, 0.5)',
+  'rgba(255, 130, 160, 0.9)',
+  'rgba(255, 105, 145, 0.85)',
+  'rgba(255, 150, 175, 0.8)',
+  'rgba(252, 120, 155, 0.85)',
+  'rgba(255, 80, 130, 0.75)',
+  'rgba(255, 170, 190, 0.9)',
 ];
 
 function createPetal(canvasWidth: number, canvasHeight: number, startFromTop = false): Petal {
   return {
     x: Math.random() * canvasWidth,
     y: startFromTop ? -20 - Math.random() * 40 : Math.random() * canvasHeight,
-    size: 8 + Math.random() * 12,
+    size: 10 + Math.random() * 16,
     speedY: 0.3 + Math.random() * 0.8,
     speedX: -0.2 + Math.random() * 0.4,
     rotation: Math.random() * 360,
     rotationSpeed: -1 + Math.random() * 2,
-    opacity: 0.4 + Math.random() * 0.4,
+    opacity: 0.6 + Math.random() * 0.4,
     swingAmplitude: 20 + Math.random() * 40,
     swingSpeed: 0.01 + Math.random() * 0.02,
     phase: Math.random() * Math.PI * 2,
@@ -130,7 +131,7 @@ const SakuraBackground: React.FC = () => {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-[5]"
-      style={{ opacity: 0.8 }}
+      style={{ opacity: 1 }}
     />
   );
 };
