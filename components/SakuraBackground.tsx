@@ -173,7 +173,15 @@ const SakuraBackground: React.FC<SakuraProps> = ({ enabled = true }) => {
   const tRef = useRef<number>(0);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      // Clear canvas when disabled
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      return;
+    }
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const canvas = canvasRef.current;
