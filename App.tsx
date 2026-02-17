@@ -655,7 +655,7 @@ function App() {
           </Suspense>
 
           {/* Main Content */}
-          <main className="flex-1 flex flex-col h-full bg-slate-50/80 dark:bg-slate-900/80 overflow-y-auto relative w-full">
+          <main className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-900 overflow-y-auto relative w-full">
 
             {/* Header */}
             <header className="h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between bg-white/95 dark:bg-slate-800/95 sm:bg-white/80 sm:dark:bg-slate-800/80 backdrop-blur-sm sm:backdrop-blur-md border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shrink-0 safe-area-top safe-area-x">
