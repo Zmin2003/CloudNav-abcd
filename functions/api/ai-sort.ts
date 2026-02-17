@@ -65,38 +65,43 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
     }
 
     // Build prompts
-    const systemPrompt = `你是一个书签整理助手。用户会给你一组书签链接（包含 title、url、description、categoryId）和现有分类列表。
+    const systemPrompt = `你是一个书签整理助手。用户会给你一组书签链接（包含 title、url、description、icon、categoryId）和现有分类列表。
 
 你的任务：
 1. 分析每个书签的 title、url、description，判断它最适合归入哪个分类
 2. categoryId 为 "common"（常用推荐）的书签不要移动，保持原样
 3. 如果现有分类不足以覆盖某些书签，你可以创建新分类
 4. 对同一分类下的书签按相关性进行排序
+5. **整理书签名称**：如果 title 不够简洁或不够清晰，优化为更简短、直观的名称（例如 "GitHub: Let's build from here · GitHub" → "GitHub"，"Google 翻译" 保持不变）
+6. **补充网站图标**：如果书签的 icon 字段为空或缺失，根据 url 推断合适的 favicon 地址，格式为 https://域名/favicon.ico 或使用 Google favicon 服务 https://www.google.com/s2/favicons?domain=域名&sz=64。如果 icon 已有值则保持不变。
 
 返回格式为 JSON：
 {
   "links": [
-    { "id": "原始id", "categoryId": "目标分类id", "order": 排序序号 }
+    { "id": "原始id", "categoryId": "目标分类id", "order": 排序序号, "title": "整理后的名称", "icon": "图标URL" }
   ],
   "newCategories": [
     { "id": "新分类id", "name": "分类名称", "icon": "Lucide图标名" }
   ]
 }
 
-可用的 Lucide 图标名举例：Star, Code, Palette, BookOpen, Gamepad2, Bot, Globe, Music, Video, ShoppingCart, Briefcase, GraduationCap, Heart, Camera, Cpu, Database, Shield, Zap, Cloud, Terminal, Smartphone, Mail, Map, Bookmark, FileText, Image, Layers, Users, Headphones, Tv, Wallet, Coffee, Plane, Building, Wrench, Lightbulb, Gift, Flag
+可用的 Lucide 图标名举例（仅用于分类图标）：Star, Code, Palette, BookOpen, Gamepad2, Bot, Globe, Music, Video, ShoppingCart, Briefcase, GraduationCap, Heart, Camera, Cpu, Database, Shield, Zap, Cloud, Terminal, Smartphone, Mail, Map, Bookmark, FileText, Image, Layers, Users, Headphones, Tv, Wallet, Coffee, Plane, Building, Wrench, Lightbulb, Gift, Flag
 
 注意：
 - 只返回纯 JSON，不要任何额外解释
 - 每个链接必须出现且只出现一次
 - id 为 "common" 的分类不要删除，是保留分类
 - 新分类的 id 用小写英文，简短有意义（如 "music", "video", "finance"）
-- order 从 0 开始递增，同分类内连续编号`;
+- order 从 0 开始递增，同分类内连续编号
+- links 中每项必须包含 title 和 icon 字段
+- icon 是网站 favicon 的完整 URL（不是 Lucide 图标名）`;
 
     const linksData = body.links.map((l: any) => ({
       id: l.id,
       title: l.title,
       url: l.url,
       description: l.description || '',
+      icon: l.icon || '',
       categoryId: l.categoryId,
     }));
 

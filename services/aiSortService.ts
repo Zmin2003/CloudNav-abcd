@@ -31,7 +31,7 @@ export async function aiSortLinks(
   }
 
   const parsed = await response.json() as {
-    links: { id: string; categoryId: string; order: number }[];
+    links: { id: string; categoryId: string; order: number; title?: string; icon?: string }[];
     newCategories?: { id: string; name: string; icon: string }[];
   };
 
@@ -63,6 +63,8 @@ export async function aiSortLinks(
       ...link,
       categoryId: targetCatId,
       order: aiResult.order !== undefined ? aiResult.order : link.order,
+      title: aiResult.title && aiResult.title.trim() ? aiResult.title.trim() : link.title,
+      icon: aiResult.icon && aiResult.icon.trim() ? aiResult.icon.trim() : link.icon,
     };
   });
 

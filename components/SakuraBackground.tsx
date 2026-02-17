@@ -26,11 +26,11 @@ interface Petal {
 // Real Somei Yoshino cherry blossoms: very pale pink to white
 
 const PALETTE = [
-  { edge: '#f8b4c8', mid: '#fdd5e0', base: '#fff3f6', vein: '#f4a0b8' },
-  { edge: '#f5a3b8', mid: '#fccdd8', base: '#fff0f4', vein: '#ee90a8' },
-  { edge: '#fcc', mid: '#ffe0e8', base: '#fff8fa', vein: '#f7b0c0' },
-  { edge: '#f0a0b5', mid: '#f8c8d5', base: '#fef0f4', vein: '#e890a5' },
-  { edge: '#ffc0d0', mid: '#ffe5ec', base: '#fffbfc', vein: '#f5a8b8' },
+  { edge: '#e8789a', mid: '#f5a8c0', base: '#fde0e8', vein: '#d06888' },
+  { edge: '#e06090', mid: '#f098b5', base: '#fcd8e4', vein: '#c85080' },
+  { edge: '#ea80a0', mid: '#f5b0c8', base: '#fce4ec', vein: '#d87098' },
+  { edge: '#d87095', mid: '#f0a0b8', base: '#fad8e2', vein: '#c06085' },
+  { edge: '#f090a8', mid: '#f8b8cc', base: '#fee8ef', vein: '#e07898' },
 ];
 
 const PETAL_COUNT = 38;
@@ -46,7 +46,7 @@ function create(w: number, h: number, top: boolean): Petal {
     speedX: -0.1 + Math.random() * 0.25,
     rot: Math.random() * Math.PI * 2,
     rotSpeed: (-0.4 + Math.random() * 0.8) * 0.02,
-    opacity: 0.55 + Math.random() * 0.4,
+    opacity: 0.65 + Math.random() * 0.35,
     phase: Math.random() * Math.PI * 2,
     swingFreq: 0.006 + Math.random() * 0.012,
     swingAmp: 0.4 + Math.random() * 0.8,
@@ -162,13 +162,18 @@ function drawPetal(ctx: CanvasRenderingContext2D, p: Petal, t: number) {
 
 // ==================== Component ====================
 
-const SakuraBackground: React.FC = () => {
+interface SakuraProps {
+  enabled?: boolean;
+}
+
+const SakuraBackground: React.FC<SakuraProps> = ({ enabled = true }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const petalsRef = useRef<Petal[]>([]);
   const frameRef = useRef<number>(0);
   const tRef = useRef<number>(0);
 
   useEffect(() => {
+    if (!enabled) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const canvas = canvasRef.current;
@@ -227,7 +232,7 @@ const SakuraBackground: React.FC = () => {
       window.removeEventListener('resize', resize);
       cancelAnimationFrame(frameRef.current);
     };
-  }, []);
+  }, [enabled]);
 
   return (
     <canvas

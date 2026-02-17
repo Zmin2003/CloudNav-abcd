@@ -568,7 +568,7 @@ function App() {
   return (
     <div className="flex h-screen overflow-hidden text-slate-900 dark:text-slate-50">
       {/* 樱花飘落背景 */}
-      <SakuraBackground />
+      <SakuraBackground enabled={siteConfig.sakuraEnabled !== false} />
       {/* 认证遮罩层 */}
       {requiresAuth && !authToken && (
         <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 flex items-center justify-center">

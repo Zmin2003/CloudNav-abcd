@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Wrench, Box, Copy, Check, Clock, Globe, Bot } from 'lucide-react';
+import { X, Save, Wrench, Box, Copy, Check, Clock, Globe, Bot, Flower2 } from 'lucide-react';
 import { PasswordExpiryConfig, SiteConfig, AiSortConfig } from '../types';
 
 interface SettingsModalProps {
@@ -303,6 +303,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                                             className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                                         />
                                         <p className="text-xs text-slate-400 mt-1">浏览器标签页显示的图标</p>
+                                    </div>
+                                    <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <Flower2 size={16} className="text-pink-500" />
+                                                <div>
+                                                    <label className="block text-sm font-medium dark:text-white">樱花飘落效果</label>
+                                                    <p className="text-xs text-slate-400">在页面上显示飘落的樱花花瓣动画</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setLocalSiteConfig(prev => ({ ...prev, sakuraEnabled: prev.sakuraEnabled !== false ? false : true }))}
+                                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                                                    localSiteConfig.sakuraEnabled !== false ? 'bg-pink-500' : 'bg-slate-300 dark:bg-slate-600'
+                                                }`}
+                                            >
+                                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                                    localSiteConfig.sakuraEnabled !== false ? 'translate-x-6' : 'translate-x-1'
+                                                }`} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
