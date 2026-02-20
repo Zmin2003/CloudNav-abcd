@@ -7,8 +7,14 @@ body {
 }
 
 /* Safe area insets for notched devices (iPhone X+) */
-.safe-area-top { padding-top: env(safe-area-inset-top); }
-.safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 .safe-area-x {
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
@@ -41,51 +47,104 @@ body {
 
 /* Basic fade */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 /* Fade + gentle rise */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Fade + slight scale for popups */
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Slide down for mobile menu */
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Slide up from bottom for sheets */
 @keyframes slideUpSheet {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
 }
 
 /* Gradient shimmer for text */
 @keyframes gradientShimmer {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* Subtle breathing glow for search bar focus */
 @keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 15px 0 rgba(59,130,246,0.15), 0 0 30px 0 rgba(59,130,246,0.05); }
-  50% { box-shadow: 0 0 20px 2px rgba(59,130,246,0.25), 0 0 40px 4px rgba(59,130,246,0.1); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 15px 0 rgba(59, 130, 246, 0.15), 0 0 30px 0 rgba(59, 130, 246, 0.05);
+  }
+
+  50% {
+    box-shadow: 0 0 20px 2px rgba(59, 130, 246, 0.25), 0 0 40px 4px rgba(59, 130, 246, 0.1);
+  }
 }
 
 /* FAB gentle pulse */
 @keyframes fabPulse {
-  0%, 100% { box-shadow: 0 4px 14px 0 rgba(59,130,246,0.3); }
-  50% { box-shadow: 0 6px 20px 2px rgba(59,130,246,0.45); }
+
+  0%,
+  100% {
+    box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 6px 20px 2px rgba(59, 130, 246, 0.45);
+  }
 }
 
 /* ========== Animation Utility Classes ========== */
@@ -136,13 +195,17 @@ body {
 .icon-hover-float {
   transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
+
 .group:hover .icon-hover-float {
   transform: scale(1.15) rotate(-3deg);
 }
 
 /* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -157,4 +220,78 @@ body {
     border-radius: 0 !important;
     height: 100%;
   }
+}
+
+/* ========== Glassmorphism Utilities ========== */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.45) !important;
+  backdrop-filter: blur(32px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+  transform: translate3d(0, 0, 0);
+}
+
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.55) !important;
+  backdrop-filter: blur(32px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+  transform: translate3d(0, 0, 0);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.5) !important;
+  backdrop-filter: blur(24px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(140%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 8px 8px 32px 0 rgba(31, 38, 135, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.3) !important;
+  transform: translate3d(0, 0, 0);
+}
+
+.dark .glass-card {
+  background: rgba(30, 41, 59, 0.5) !important;
+  backdrop-filter: blur(24px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(140%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 8px 8px 32px 0 rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+  transform: translate3d(0, 0, 0);
+}
+
+.glass-header {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(32px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(150%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.7) !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05) !important;
+  transform: translate3d(0, 0, 0);
+}
+
+.dark .glass-header {
+  background: rgba(15, 23, 42, 0.6) !important;
+  backdrop-filter: blur(32px) saturate(150%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(150%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2) !important;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Base App Translucency Override */
+.glass-app-bg {
+  background: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  transform: translate3d(0, 0, 0);
+}
+
+.dark .glass-app-bg {
+  background: rgba(15, 23, 42, 0.6) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  transform: translate3d(0, 0, 0);
 }

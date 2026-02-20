@@ -32,8 +32,8 @@ const LinkCard: React.FC<LinkCardProps> = ({
       // Synthesize a mouse event at the touch position for the context menu
       const touch = e.touches[0];
       const syntheticEvent = {
-        preventDefault: () => {},
-        stopPropagation: () => {},
+        preventDefault: () => { },
+        stopPropagation: () => { },
         clientX: touch.clientX,
         clientY: touch.clientY,
       } as React.MouseEvent;
@@ -80,15 +80,14 @@ const LinkCard: React.FC<LinkCardProps> = ({
   const content = (
     <div className="flex items-center gap-3 w-full">
       {/* Icon */}
-      <div className="text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-bold uppercase shrink-0 w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-700 icon-hover-float">
+      <div className="text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-bold uppercase shrink-0 w-8 h-8 rounded-xl bg-white/60 dark:bg-slate-700/60 shadow-sm border border-slate-100/50 dark:border-slate-600/50 icon-hover-float backdrop-blur-sm">
         {iconElement}
       </div>
       {/* Title */}
-      <h3 className={`truncate overflow-hidden text-ellipsis text-sm font-medium ${
-        isBatchEditMode
-          ? 'text-slate-900 dark:text-slate-100'
-          : 'text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors'
-      }`}>
+      <h3 className={`truncate overflow-hidden text-ellipsis text-sm font-medium ${isBatchEditMode
+        ? 'text-slate-900 dark:text-slate-100'
+        : 'text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors'
+        }`}>
         {link.title}
       </h3>
     </div>
@@ -97,11 +96,11 @@ const LinkCard: React.FC<LinkCardProps> = ({
   return (
     <div
       key={link.id}
-      className={`group relative touch-none-select transition-all duration-300 ease-out hover:shadow-xl hover:shadow-blue-200/60 dark:hover:shadow-blue-900/30 hover:-translate-y-0.5 hover:scale-[1.02] flex items-center justify-between rounded-xl border shadow-sm p-3 hover:border-blue-400 dark:hover:border-blue-500 active:scale-[0.98] ${
-        isSelected
-          ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800'
-          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
-      } ${isBatchEditMode ? 'cursor-pointer' : ''}`}
+      className={`group relative touch-none-select transition-all duration-300 ease-out hover:shadow-xl hover:shadow-blue-300/40 dark:hover:shadow-blue-900/40 hover:-translate-y-1 hover:scale-[1.03] flex items-center justify-between rounded-2xl shadow-sm p-3 hover:border-blue-400 dark:hover:border-blue-500 active:scale-[0.98]
+        bg-white/40 dark:bg-slate-800/50 backdrop-blur-2xl border border-white/60 dark:border-white/10 ${isSelected
+          ? 'bg-red-50/70 border-red-300 dark:bg-red-900/40 dark:border-red-700'
+          : 'border-white/40 dark:border-slate-600/50'
+        } ${isBatchEditMode ? 'cursor-pointer' : ''}`}
       onClick={handleClick}
       onContextMenu={(e) => onContextMenu(e, link)}
       onTouchStart={handleTouchStart}

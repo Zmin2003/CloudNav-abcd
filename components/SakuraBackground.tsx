@@ -23,17 +23,15 @@ interface Petal {
 }
 
 // ==================== Palette ====================
-// Real Somei Yoshino cherry blossoms: very pale pink to white
-
+// Enhanced vibrant palette for dreamy glassmorphism background
 const PALETTE = [
-  { edge: '#e8789a', mid: '#f5a8c0', base: '#fde0e8', vein: '#d06888' },
-  { edge: '#e06090', mid: '#f098b5', base: '#fcd8e4', vein: '#c85080' },
-  { edge: '#ea80a0', mid: '#f5b0c8', base: '#fce4ec', vein: '#d87098' },
-  { edge: '#d87095', mid: '#f0a0b8', base: '#fad8e2', vein: '#c06085' },
-  { edge: '#f090a8', mid: '#f8b8cc', base: '#fee8ef', vein: '#e07898' },
+  { edge: '#ff8fb8', mid: '#fbcfe8', base: '#fdf2f8', vein: '#f472b6' },
+  { edge: '#f472b6', mid: '#fce7f3', base: '#fdf2f8', vein: '#fb7185' },
+  { edge: '#fb7185', mid: '#ffe4e6', base: '#fff1f2', vein: '#f43f5e' },
+  { edge: '#e879f9', mid: '#fae8ff', base: '#fdf4ff', vein: '#d946ef' },
 ];
 
-const PETAL_COUNT = 38;
+const PETAL_COUNT = 45; // slightly increased for richer effect
 
 // ==================== Create ====================
 
@@ -41,15 +39,15 @@ function create(w: number, h: number, top: boolean): Petal {
   return {
     x: Math.random() * w,
     y: top ? -(20 + Math.random() * 50) : Math.random() * h,
-    size: 10 + Math.random() * 14,
-    speedY: 0.2 + Math.random() * 0.55,
-    speedX: -0.1 + Math.random() * 0.25,
+    size: 12 + Math.random() * 16, // slightly larger
+    speedY: 0.3 + Math.random() * 0.6,
+    speedX: -0.15 + Math.random() * 0.3,
     rot: Math.random() * Math.PI * 2,
     rotSpeed: (-0.4 + Math.random() * 0.8) * 0.02,
-    opacity: 0.65 + Math.random() * 0.35,
+    opacity: 0.7 + Math.random() * 0.3, // higher minimum opacity
     phase: Math.random() * Math.PI * 2,
-    swingFreq: 0.006 + Math.random() * 0.012,
-    swingAmp: 0.4 + Math.random() * 0.8,
+    swingFreq: 0.005 + Math.random() * 0.01,
+    swingAmp: 0.5 + Math.random() * 1.0,
     flipAngle: Math.random() * Math.PI * 2,
     flipSpeed: 0.008 + Math.random() * 0.018,
     curlAngle: Math.random() * Math.PI * 2,
@@ -75,12 +73,12 @@ function drawPetal(ctx: CanvasRenderingContext2D, p: Petal, t: number) {
   ctx.scale(flipScale, 1);
   ctx.globalAlpha = p.opacity;
 
-  // Soft glow
-  ctx.shadowColor = 'rgba(255,180,200,0.25)';
-  ctx.shadowBlur = s * 0.6;
-  ctx.shadowOffsetY = s * 0.1;
+  // Enhance Glow Effect
+  ctx.shadowColor = 'rgba(255,180,220,0.6)'; // more vibrant shadow
+  ctx.shadowBlur = s * 1.2; // stronger blur
+  ctx.shadowOffsetY = s * 0.2; // stronger offset
 
-  // Main petal gradient: stem(white) → tip(pink)
+  // Main petal gradient
   const grad = ctx.createLinearGradient(0, 0, s, 0);
   grad.addColorStop(0, c.base);
   grad.addColorStop(0.3, c.base);
@@ -88,15 +86,12 @@ function drawPetal(ctx: CanvasRenderingContext2D, p: Petal, t: number) {
   grad.addColorStop(1, c.edge);
   ctx.fillStyle = grad;
 
-  // Petal shape: narrow stem → wide body → notched heart tip
+  // Petal shape
   ctx.beginPath();
   ctx.moveTo(0, 0);
-  // Upper edge
   ctx.bezierCurveTo(s * 0.2, -bodyW * 0.3, s * 0.45, -bodyW, s * 0.75, -bodyW * 0.85);
   ctx.quadraticCurveTo(s * 0.92, -bodyW * 0.35, s, -notchDepth);
-  // Heart notch
   ctx.quadraticCurveTo(s * 0.96, 0, s, notchDepth);
-  // Lower edge
   ctx.quadraticCurveTo(s * 0.92, bodyW * 0.35, s * 0.75, bodyW * 0.85);
   ctx.bezierCurveTo(s * 0.45, bodyW, s * 0.2, bodyW * 0.3, 0, 0);
   ctx.closePath();
@@ -106,18 +101,16 @@ function drawPetal(ctx: CanvasRenderingContext2D, p: Petal, t: number) {
   ctx.shadowBlur = 0;
 
   // Veins
-  ctx.globalAlpha = p.opacity * 0.2;
+  ctx.globalAlpha = p.opacity * 0.25;
   ctx.strokeStyle = c.vein;
   ctx.lineWidth = 0.4;
   ctx.lineCap = 'round';
 
-  // Center vein
   ctx.beginPath();
   ctx.moveTo(s * 0.05, 0);
   ctx.quadraticCurveTo(s * 0.5, 0, s * 0.92, 0);
   ctx.stroke();
 
-  // Side veins
   for (const sign of [-1, 1]) {
     ctx.beginPath();
     ctx.moveTo(s * 0.25, 0);
@@ -131,11 +124,11 @@ function drawPetal(ctx: CanvasRenderingContext2D, p: Petal, t: number) {
 
   // Curl / fold highlight
   if (Math.abs(curlVal) > 0.05) {
-    ctx.globalAlpha = p.opacity * Math.abs(curlVal) * 0.6;
+    ctx.globalAlpha = p.opacity * Math.abs(curlVal) * 0.7; // slightly stronger
     const side = curlVal > 0 ? -1 : 1;
     const curlGrad = ctx.createLinearGradient(s * 0.3, 0, s * 0.9, side * bodyW * -0.6);
     curlGrad.addColorStop(0, 'rgba(255,255,255,0)');
-    curlGrad.addColorStop(0.5, 'rgba(255,255,255,0.6)');
+    curlGrad.addColorStop(0.5, 'rgba(255,255,255,0.8)');
     curlGrad.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = curlGrad;
 
@@ -149,8 +142,8 @@ function drawPetal(ctx: CanvasRenderingContext2D, p: Petal, t: number) {
   }
 
   // Edge rim light
-  ctx.globalAlpha = p.opacity * 0.1;
-  ctx.strokeStyle = '#fff';
+  ctx.globalAlpha = p.opacity * 0.15;
+  ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = 0.6;
   ctx.beginPath();
   ctx.moveTo(s * 0.5, -bodyW * 0.95);
@@ -174,7 +167,6 @@ const SakuraBackground: React.FC<SakuraProps> = ({ enabled = true }) => {
 
   useEffect(() => {
     if (!enabled) {
-      // Clear canvas when disabled
       const canvas = canvasRef.current;
       if (canvas) {
         const ctx = canvas.getContext('2d');
@@ -213,13 +205,12 @@ const SakuraBackground: React.FC<SakuraProps> = ({ enabled = true }) => {
       for (let i = 0; i < petalsRef.current.length; i++) {
         const p = petalsRef.current[i];
 
-        // Natural movement
         const drift = Math.sin(t * p.swingFreq + p.phase) * p.swingAmp;
-        const gustX = Math.sin(t * 0.002 + p.phase * 2) * 0.15;
+        const gustX = Math.sin(t * 0.002 + p.phase * 2) * 0.2; // stronger gust
 
         p.x += p.speedX + drift + gustX;
-        p.y += p.speedY + Math.cos(t * p.swingFreq * 0.7 + p.phase) * 0.08;
-        p.rot += p.rotSpeed + drift * 0.005;
+        p.y += p.speedY + Math.cos(t * p.swingFreq * 0.7 + p.phase) * 0.1;
+        p.rot += p.rotSpeed + drift * 0.006;
         p.flipAngle += p.flipSpeed;
         p.curlAngle += p.curlSpeed;
 
@@ -245,7 +236,8 @@ const SakuraBackground: React.FC<SakuraProps> = ({ enabled = true }) => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-[5]"
+      className="fixed inset-0 pointer-events-none z-[-1]"
+      style={{ opacity: 1, position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh' }}
     />
   );
 };

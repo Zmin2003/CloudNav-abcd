@@ -566,8 +566,8 @@ function App() {
   // --- Render ---
 
   return (
-    <div className="flex h-screen overflow-hidden text-slate-900 dark:text-slate-50">
-      {/* 樱花飘落背景 */}
+    <div className="flex h-screen overflow-hidden text-slate-900 dark:text-slate-50 relative z-10 w-full">
+      {/* 樱花飘落背景 (Canvas sits at z-0 inside this z-10 container) */}
       <SakuraBackground enabled={siteConfig.sakuraEnabled !== false} />
       {/* 认证遮罩层 */}
       {requiresAuth && !authToken && (
@@ -655,10 +655,10 @@ function App() {
           </Suspense>
 
           {/* Main Content */}
-          <main className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-900 overflow-y-auto relative w-full">
+          <main className="flex-1 flex flex-col h-full bg-white/20 dark:bg-slate-900/30 overflow-y-auto relative w-full">
 
             {/* Header */}
-            <header className="h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between bg-white/95 dark:bg-slate-800/95 sm:bg-white/80 sm:dark:bg-slate-800/80 backdrop-blur-sm sm:backdrop-blur-md border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shrink-0 safe-area-top safe-area-x">
+            <header className="bg-white/50 dark:bg-slate-900/60 backdrop-blur-2xl border-b border-white/40 dark:border-white/10 shadow-sm h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between sticky top-0 z-10 shrink-0 safe-area-top safe-area-x">
               <div className="flex items-center gap-4 sm:gap-6">
                 <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
                   {siteConfig.navigationName || 'Zmin Nav'}
@@ -669,33 +669,33 @@ function App() {
               <div className="hidden sm:flex items-center gap-2">
                 <button
                   onClick={() => setIsSettingsModalOpen(true)}
-                  className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all"
+                  className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all hover:scale-110 active:scale-95"
                   title="设置"
                 >
                   <Settings size={20} />
                 </button>
                 <button
                   onClick={() => { if (!authToken) setIsAuthOpen(true); else { setEditingLink(undefined); setPrefillLink(undefined); setIsModalOpen(true); } }}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-full transition-all"
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 rounded-full transition-all shadow-md shadow-blue-500/20 hover:shadow-lg hover:-translate-y-0.5"
                 >
                   <Plus size={14} /> 添加
                 </button>
                 <button
                   onClick={() => { if (!authToken) setIsAuthOpen(true); else setIsImportModalOpen(true); }}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full border border-slate-200 dark:border-slate-600 transition-all"
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full border border-slate-300 dark:border-slate-600 transition-all hover:shadow-sm"
                 >
                   <Upload size={14} /> 导入
                 </button>
                 <button
                   onClick={() => { if (!authToken) setIsAuthOpen(true); else setIsCatManagerOpen(true); }}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full border border-slate-200 dark:border-slate-600 transition-all"
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full border border-slate-300 dark:border-slate-600 transition-all hover:shadow-sm"
                 >
                   <Settings size={14} /> 分类
                 </button>
                 <button
                   onClick={handleAiSort}
                   disabled={isAiSorting}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full transition-all disabled:opacity-60"
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full transition-all disabled:opacity-60 shadow-md shadow-pink-500/20 hover:shadow-lg hover:-translate-y-0.5"
                   title="AI 智能整理书签"
                 >
                   {isAiSorting ? <Loader2 size={14} className="animate-spin" /> : <Bot size={14} />} AI 整理
@@ -715,45 +715,44 @@ function App() {
 
             {/* Mobile Menu Dropdown */}
             {isMobileMenuOpen && (
-              <div className="sm:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-3 py-2 flex flex-wrap gap-2 safe-area-x slide-down">
+              <div className="sm:hidden glass-panel border-b border-white/20 px-3 py-2 flex flex-wrap gap-2 safe-area-x slide-down">
                 <button
                   onClick={() => { setIsSettingsModalOpen(true); setIsMobileMenuOpen(false); }}
-                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 rounded-lg active:bg-slate-100 dark:active:bg-slate-600 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm rounded-lg active:scale-95 transition-all"
                 >
                   <Settings size={16} /> 设置
                 </button>
                 <button
                   onClick={() => { if (!authToken) setIsAuthOpen(true); else setIsImportModalOpen(true); setIsMobileMenuOpen(false); }}
-                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 rounded-lg active:bg-slate-100 dark:active:bg-slate-600 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm rounded-lg active:scale-95 transition-all"
                 >
                   <Upload size={16} /> 导入
                 </button>
                 <button
                   onClick={() => { if (!authToken) setIsAuthOpen(true); else setIsCatManagerOpen(true); setIsMobileMenuOpen(false); }}
-                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 rounded-lg active:bg-slate-100 dark:active:bg-slate-600 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm rounded-lg active:scale-95 transition-all"
                 >
                   <FolderInput size={16} /> 分类
                 </button>
                 <button
                   onClick={() => { if (!authToken) setIsAuthOpen(true); else setIsBackupModalOpen(true); setIsMobileMenuOpen(false); }}
-                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 rounded-lg active:bg-slate-100 dark:active:bg-slate-600 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm rounded-lg active:scale-95 transition-all"
                 >
                   <Upload size={16} /> 备份
                 </button>
                 <button
                   onClick={() => { toggleBatchEditMode(); setIsMobileMenuOpen(false); }}
-                  className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg transition-colors ${
-                    isBatchEditMode
-                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                      : 'text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 active:bg-slate-100 dark:active:bg-slate-600'
-                  }`}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg transition-all active:scale-95 ${isBatchEditMode
+                    ? 'bg-blue-200 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
+                    : 'text-slate-700 dark:text-slate-200 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm'
+                    }`}
                 >
                   <CheckSquare size={16} /> 批量编辑
                 </button>
                 <button
                   onClick={() => { handleAiSort(); setIsMobileMenuOpen(false); }}
                   disabled={isAiSorting}
-                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg active:from-purple-600 active:to-pink-600 transition-colors disabled:opacity-60"
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg active:scale-95 transition-all disabled:opacity-60 shadow-md shadow-pink-500/20"
                 >
                   {isAiSorting ? <Loader2 size={16} className="animate-spin" /> : <Bot size={16} />} AI 整理
                 </button>
@@ -765,16 +764,16 @@ function App() {
 
               {/* Hero Search Section */}
               <section className="flex flex-col items-center justify-center pt-[15vh] pb-4 sm:py-12 md:py-20 fade-up">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 dark:text-slate-100 mb-4 sm:mb-8 bg-gradient-to-r from-blue-600 via-purple-500 to-blue-600 bg-clip-text text-transparent gradient-shimmer">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 dark:text-slate-100 mb-4 sm:mb-8 bg-gradient-to-r from-blue-600 via-purple-500 to-blue-600 bg-clip-text text-transparent gradient-shimmer drop-shadow-sm">
                   {greeting}
                 </h1>
 
                 {/* 搜索框 */}
-                <div className="relative w-full max-w-2xl mx-auto shadow-xl shadow-blue-500/10 rounded-full group search-glow transition-all duration-300">
+                <div className="relative w-full max-w-2xl mx-auto shadow-2xl shadow-blue-500/20 rounded-full group search-glow transition-all duration-300 hover:shadow-blue-500/30 hover:-translate-y-1">
                   {/* 搜索源选择弹出窗口 */}
                   {showSearchSourcePopup && (
                     <div
-                      className="absolute left-0 top-full mt-4 w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 p-4 z-50 scale-in"
+                      className="absolute left-0 top-full mt-4 w-full bg-white/60 dark:bg-slate-800/70 backdrop-blur-3xl border border-white/50 dark:border-white/10 rounded-3xl p-4 z-50 scale-in shadow-xl shadow-black/5"
                       onMouseEnter={() => setIsPopupHovered(true)}
                       onMouseLeave={() => setIsPopupHovered(false)}
                     >
@@ -790,9 +789,9 @@ function App() {
                                 onClick={() => handleSearchSourceSelectWrapper(source)}
                                 onMouseEnter={() => setHoveredSearchSource(source)}
                                 onMouseLeave={() => setHoveredSearchSource(null)}
-                                className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors group/item"
+                                className="flex flex-col items-center gap-2 p-3 rounded-2xl hover:bg-white/60 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 transition-all group/item hover:-translate-y-1 hover:shadow-md"
                               >
-                                <div className="p-2 bg-white dark:bg-slate-600 rounded-lg shadow-sm border border-slate-100 dark:border-slate-500 group-hover/item:scale-110 transition-transform">
+                                <div className="p-2 bg-white/80 dark:bg-slate-600/80 backdrop-blur-sm rounded-xl shadow-sm border border-slate-200 dark:border-slate-500 group-hover/item:scale-110 transition-transform">
                                   {hostname ? (
                                     <img
                                       src={`https://www.faviconextractor.com/favicon/${hostname}?larger=true`}
@@ -806,7 +805,7 @@ function App() {
                                     <Search size={20} className="text-slate-400" />
                                   )}
                                 </div>
-                                <span className="text-xs font-medium truncate w-full text-center">{source.name}</span>
+                                <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate w-full text-center">{source.name}</span>
                               </button>
                             );
                           })}
@@ -816,7 +815,7 @@ function App() {
 
                   {/* 搜索图标/引擎图标 */}
                   <div
-                    className="absolute left-4 top-1/2 -translate-y-1/2 cursor-pointer p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 cursor-pointer p-1.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-colors"
                     onClick={() => setShowSearchSourcePopup(!showSearchSourcePopup)}
                     onMouseEnter={() => setIsIconHovered(true)}
                     onMouseLeave={() => setIsIconHovered(false)}
@@ -826,7 +825,7 @@ function App() {
                       <img
                         src={`https://www.faviconextractor.com/favicon/${activeSearchHostname}?larger=true`}
                         alt={activeSearchSource.name}
-                        className="w-6 h-6"
+                        className="w-6 h-6 hover:scale-110 transition-transform"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = `https://www.google.com/s2/favicons?domain=${activeSearchHostname}&sz=32`;
                         }}
@@ -847,7 +846,7 @@ function App() {
                         window.open(searchUrl, '_blank');
                       }
                     }}
-                    className="w-full pl-14 pr-14 py-4 rounded-full bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 text-base focus:border-blue-500 focus:ring-0 dark:focus:border-blue-500 dark:text-white placeholder-slate-400 outline-none transition-all"
+                    className="w-full pl-14 pr-14 py-4 rounded-full bg-white/40 dark:bg-slate-800/60 backdrop-blur-2xl border-2 border-white/60 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)] text-base focus:border-blue-500 focus:bg-white/70 dark:focus:bg-slate-800/80 focus:ring-4 focus:ring-blue-500/20 dark:focus:border-blue-500 dark:text-white placeholder-slate-700/60 dark:placeholder-slate-300/60 outline-none transition-all"
                   />
 
                   {searchQuery.trim() && (
