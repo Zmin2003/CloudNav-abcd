@@ -15,6 +15,33 @@ const json = (data: unknown, status = 200) =>
     headers: { 'Content-Type': 'application/json', ...corsHeaders },
   });
 
+/** 时间安全的字符串比较 */
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    let result = a.length ^ b.length;
+    const maxLen = Math.max(a.length, b.length);
+    for (let i = 0; i < maxLen; i++) {
+      result |= (a.charCodeAt(i % a.length) || 0) ^ (b.charCodeAt(i % b.length) || 0);
+    }
+    return result === 0;
+  }
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
+
+/** 验证 URL 格式 */
+function isValidHttpUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return ['http:', 'https:'].includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+}
+
 export const onRequestOptions = async () =>
   new Response(null, { status: 204, headers: corsHeaders });
 
@@ -22,12 +49,18 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
   const { request, env } = context;
 
   try {
-    // Auth check
+    // Auth check - 时序安全比较
     if (env.PASSWORD && env.PASSWORD.trim()) {
       const providedPassword = request.headers.get('x-auth-password') || '';
-      if (providedPassword !== env.PASSWORD) {
+      if (!timingSafeEqual(providedPassword, env.PASSWORD)) {
         return json({ error: 'Unauthorized' }, 401);
       }
+    }
+
+    // 请求体大小检查
+    const contentLength = request.headers.get('content-length');
+    if (contentLength && parseInt(contentLength, 10) > 2 * 1024 * 1024) { // 2MB
+      return json({ error: 'Request body too large' }, 413);
     }
 
     const body = await request.json() as {
@@ -37,6 +70,15 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
 
     if (!Array.isArray(body.links) || !Array.isArray(body.categories)) {
       return json({ error: 'Invalid request: links and categories are required' }, 400);
+    }
+
+    // 数量限制
+    if (body.links.length > 5000) {
+      return json({ error: '书签数量过多，最多支持 5000 个书签的 AI 整理' }, 400);
+    }
+
+    if (body.categories.length > 200) {
+      return json({ error: '分类数量过多' }, 400);
     }
 
     // Read AI config from KV
@@ -56,12 +98,25 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
       return json({ error: '请先在设置 → AI 排序中完整配置 API 地址、Key 和模型' }, 400);
     }
 
-    // Build API URL
+    // 验证 AI API URL 格式
     let apiUrl = aiConfig.apiUrl.trim();
+    if (!isValidHttpUrl(apiUrl.endsWith('/chat/completions') ? apiUrl : apiUrl + '/v1/chat/completions')) {
+      // 尝试构建完整 URL 后验证
+      if (!apiUrl.startsWith('http://') && !apiUrl.startsWith('https://')) {
+        return json({ error: 'AI API 地址格式无效，必须以 http:// 或 https:// 开头' }, 400);
+      }
+    }
+
+    // Build API URL
     if (!apiUrl.endsWith('/chat/completions')) {
       if (apiUrl.endsWith('/')) apiUrl = apiUrl.slice(0, -1);
       if (!apiUrl.endsWith('/v1')) apiUrl += '/v1';
       apiUrl += '/chat/completions';
+    }
+
+    // 最终 URL 验证
+    if (!isValidHttpUrl(apiUrl)) {
+      return json({ error: 'AI API 地址格式无效' }, 400);
     }
 
     // Build prompts
@@ -96,19 +151,20 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
 - links 中每项必须包含 title 和 icon 字段
 - icon 是网站 favicon 的完整 URL（不是 Lucide 图标名）`;
 
+    // 清理输入数据，只传必要字段给 AI
     const linksData = body.links.map((l: any) => ({
-      id: l.id,
-      title: l.title,
-      url: l.url,
-      description: l.description || '',
-      icon: l.icon || '',
-      categoryId: l.categoryId,
+      id: typeof l.id === 'string' ? l.id.slice(0, 100) : '',
+      title: typeof l.title === 'string' ? l.title.slice(0, 500) : '',
+      url: typeof l.url === 'string' ? l.url.slice(0, 2048) : '',
+      description: typeof l.description === 'string' ? l.description.slice(0, 500) : '',
+      icon: typeof l.icon === 'string' ? l.icon.slice(0, 2048) : '',
+      categoryId: typeof l.categoryId === 'string' ? l.categoryId.slice(0, 100) : '',
     }));
 
     const catsData = body.categories.map((c: any) => ({
-      id: c.id,
-      name: c.name,
-      icon: c.icon,
+      id: typeof c.id === 'string' ? c.id.slice(0, 100) : '',
+      name: typeof c.name === 'string' ? c.name.slice(0, 200) : '',
+      icon: typeof c.icon === 'string' ? c.icon.slice(0, 200) : '',
     }));
 
     const userPrompt = `现有分类：
@@ -139,7 +195,8 @@ ${JSON.stringify(linksData, null, 2)}
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      return json({ error: `AI API 请求失败 (${aiResponse.status}): ${errorText}` }, 502);
+      // 不要把完整的错误信息暴露给前端，可能包含敏感信息
+      return json({ error: `AI API 请求失败 (${aiResponse.status})` }, 502);
     }
 
     const aiData = await aiResponse.json() as any;
@@ -163,8 +220,13 @@ ${JSON.stringify(linksData, null, 2)}
       return json({ error: 'AI 返回的 JSON 格式无效，请重试' }, 502);
     }
 
+    // 验证 AI 返回的结构
+    if (!parsed || !Array.isArray(parsed.links)) {
+      return json({ error: 'AI 返回的数据结构无效' }, 502);
+    }
+
     return json(parsed);
   } catch (err: any) {
-    return json({ error: `AI 整理失败: ${err.message || '未知错误'}` }, 500);
+    return json({ error: 'AI 整理失败，请重试' }, 500);
   }
 };

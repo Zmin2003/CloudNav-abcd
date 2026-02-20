@@ -66,6 +66,19 @@ const LinkCard: React.FC<LinkCardProps> = ({
     }
   }, [isBatchEditMode, link.id, onToggleSelection]);
 
+  // 安全校验 URL，防止 javascript: 协议等 XSS
+  const safeUrl = (() => {
+    try {
+      const parsed = new URL(link.url);
+      if (['http:', 'https:'].includes(parsed.protocol)) {
+        return link.url;
+      }
+      return '#';
+    } catch {
+      return '#';
+    }
+  })();
+
   const iconElement = link.icon ? (
     <img
       src={link.icon}
@@ -96,7 +109,7 @@ const LinkCard: React.FC<LinkCardProps> = ({
   return (
     <div
       key={link.id}
-      className={`group relative touch-none-select transition-all duration-300 ease-out hover:shadow-xl hover:shadow-blue-300/40 dark:hover:shadow-blue-900/40 hover:-translate-y-1 hover:scale-[1.03] flex items-center justify-between rounded-2xl shadow-sm p-3 hover:border-blue-400 dark:hover:border-blue-500 active:scale-[0.98]
+      className={`group relative touch-none-select card-shimmer card-glow-ring transition-all duration-300 ease-out hover:shadow-xl hover:shadow-blue-300/40 dark:hover:shadow-blue-900/40 hover:-translate-y-1 hover:scale-[1.03] flex items-center justify-between rounded-2xl shadow-sm p-3 hover:border-blue-400 dark:hover:border-blue-500 active:scale-[0.98]
         bg-white/40 dark:bg-slate-800/50 backdrop-blur-2xl border border-white/60 dark:border-white/10 ${isSelected
           ? 'bg-red-50/70 border-red-300 dark:bg-red-900/40 dark:border-red-700'
           : 'border-white/40 dark:border-slate-600/50'
@@ -107,13 +120,18 @@ const LinkCard: React.FC<LinkCardProps> = ({
       onTouchEnd={handleTouchEnd}
       onTouchMove={handleTouchMove}
     >
+      {/* Pinned indicator */}
+      {link.pinned && (
+        <span className="pinned-badge absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-400 rounded-full shadow-sm shadow-amber-400/50 z-10" />
+      )}
+
       {isBatchEditMode ? (
         <div className="flex flex-1 min-w-0 overflow-hidden h-full items-center">
           {content}
         </div>
       ) : (
         <a
-          href={link.url}
+          href={safeUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="flex flex-1 min-w-0 overflow-hidden h-full items-center"

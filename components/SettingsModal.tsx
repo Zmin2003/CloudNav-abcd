@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Wrench, Box, Copy, Check, Clock, Globe, Bot, Flower2 } from 'lucide-react';
+import { X, Save, Clock, Globe, Bot, Flower2 } from 'lucide-react';
 import { PasswordExpiryConfig, SiteConfig, AiSortConfig } from '../types';
 
 interface SettingsModalProps {
@@ -16,26 +16,16 @@ interface SettingsModalProps {
 const SettingsModal: React.FC<SettingsModalProps> = ({
     isOpen, onClose, passwordExpiryConfig, onSavePasswordExpiry, siteConfig, onSaveSiteConfig, aiSortConfig, onSaveAiSortConfig
 }) => {
-    const [activeTab, setActiveTab] = useState<'tools' | 'website' | 'settings' | 'ai'>('tools');
+    const [activeTab, setActiveTab] = useState<'website' | 'settings' | 'ai'>('website');
     const [localPasswordExpiryConfig, setLocalPasswordExpiryConfig] = useState<PasswordExpiryConfig>(passwordExpiryConfig);
     const [localSiteConfig, setLocalSiteConfig] = useState<SiteConfig>(siteConfig);
     const [localAiSortConfig, setLocalAiSortConfig] = useState<AiSortConfig>(aiSortConfig);
-
-    // Tools State
-    const [password, setPassword] = useState('');
-    const [domain, setDomain] = useState('');
-
-    // Copy feedback states
-    const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>({});
 
     useEffect(() => {
         if (isOpen) {
             setLocalPasswordExpiryConfig(passwordExpiryConfig);
             setLocalSiteConfig(siteConfig);
             setLocalAiSortConfig(aiSortConfig);
-            setDomain(window.location.origin);
-            const storedToken = localStorage.getItem('cloudnav_auth_token');
-            if (storedToken) setPassword(storedToken);
         }
     }, [isOpen, passwordExpiryConfig, siteConfig, aiSortConfig]);
 
@@ -58,112 +48,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         onClose();
     };
 
-    const handleCopy = (text: string, key: string) => {
-        navigator.clipboard.writeText(text);
-        setCopiedStates(prev => ({ ...prev, [key]: true }));
-        setTimeout(() => {
-            setCopiedStates(prev => ({ ...prev, [key]: false }));
-        }, 2000);
-    };
-
-    // --- Chrome Extension Code ---
-    const extManifest = `{
-  "manifest_version": 3,
-  "name": "Zmin Nav Assistant",
-  "version": "3.0",
-  "permissions": ["activeTab"],
-  "action": {
-    "default_popup": "popup.html",
-    "default_title": "保存到Zmin Nav"
-  }
-}`;
-
-    const extPopupHtml = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <style>
-    body { width: 320px; padding: 16px; font-family: -apple-system, sans-serif; background: #f8fafc; }
-    h3 { margin: 0 0 16px 0; font-size: 16px; color: #0f172a; }
-    label { display: block; font-size: 12px; color: #64748b; margin-bottom: 4px; }
-    input, select { width: 100%; margin-bottom: 12px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-    button { width: 100%; background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 500; cursor: pointer; }
-    button:hover { background: #2563eb; }
-    #status { margin-top: 12px; text-align: center; font-size: 12px; }
-    .error { color: #ef4444; }
-    .success { color: #22c55e; }
-  </style>
-</head>
-<body>
-  <h3>保存到Zmin Nav</h3>
-  <label>标题</label>
-  <input type="text" id="title" placeholder="网站标题">
-  <label>分类</label>
-  <select id="category"><option>加载中...</option></select>
-  <button id="saveBtn">保存书签</button>
-  <div id="status"></div>
-  <script src="popup.js"></script>
-</body>
-</html>`;
-
-    const extPopupJs = `const CONFIG = {
-  apiBase: "${domain}",
-  password: "${password}"
-};
-
-document.addEventListener('DOMContentLoaded', async () => {
-  const titleInput = document.getElementById('title');
-  const catSelect = document.getElementById('category');
-  const saveBtn = document.getElementById('saveBtn');
-  const statusDiv = document.getElementById('status');
-  let currentTabUrl = '';
-
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (tab) {
-    titleInput.value = tab.title || '';
-    currentTabUrl = tab.url || '';
-  }
-
-  try {
-    const res = await fetch(\`\${CONFIG.apiBase}/api/storage\`, {
-      headers: { 'x-auth-password': CONFIG.password }
-    });
-    if (!res.ok) throw new Error('Auth failed');
-    const data = await res.json();
-    catSelect.innerHTML = '';
-    data.categories.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c.id;
-      opt.textContent = c.name;
-      catSelect.appendChild(opt);
-    });
-  } catch (e) {
-    statusDiv.textContent = 'Error: ' + e.message;
-    statusDiv.className = 'error';
-  }
-
-  saveBtn.addEventListener('click', async () => {
-    if (!currentTabUrl) return;
-    saveBtn.disabled = true;
-    try {
-      const res = await fetch(\`\${CONFIG.apiBase}/api/link\`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-auth-password': CONFIG.password },
-        body: JSON.stringify({ title: titleInput.value, url: currentTabUrl, categoryId: catSelect.value })
-      });
-      if (res.ok) {
-        statusDiv.textContent = '保存成功！';
-        statusDiv.className = 'success';
-        setTimeout(() => window.close(), 1200);
-      } else throw new Error(res.statusText);
-    } catch (e) {
-      statusDiv.textContent = '保存失败';
-      statusDiv.className = 'error';
-      saveBtn.disabled = false;
-    }
-  });
-});`;
-
     if (!isOpen) return null;
 
     return (
@@ -172,12 +56,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700 shrink-0">
                     <div className="flex gap-3 sm:gap-4 overflow-x-auto flex-nowrap">
-                        <button
-                            onClick={() => setActiveTab('tools')}
-                            className={`text-sm font-semibold flex items-center gap-2 pb-1 transition-colors ${activeTab === 'tools' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' : 'text-slate-500 dark:text-slate-400'}`}
-                        >
-                            <Wrench size={18} /> 扩展工具
-                        </button>
                         <button
                             onClick={() => setActiveTab('website')}
                             className={`text-sm font-semibold flex items-center gap-2 pb-1 transition-colors ${activeTab === 'website' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' : 'text-slate-500 dark:text-slate-400'}`}
@@ -203,64 +81,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
 
                 <div className="p-6 space-y-6 overflow-y-auto min-h-[300px]">
-                    {activeTab === 'tools' && (
-                        <div className="space-y-6">
-                            <div className="space-y-3">
-                                <label className="block text-xs font-medium text-slate-500 mb-1">
-                                    输入您的访问密码 (用于生成扩展代码)
-                                </label>
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-mono"
-                                    placeholder="部署时设置的 PASSWORD"
-                                />
-                            </div>
-
-                            <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
-                                <h4 className="font-bold dark:text-white mb-2 text-sm flex items-center gap-2">
-                                    <Box size={16} /> Chrome 扩展
-                                </h4>
-                                <p className="text-xs text-slate-500 mb-4">
-                                    创建以下 3 个文件，使用"加载已解压的扩展程序"安装。
-                                </p>
-
-                                <div className="space-y-4">
-                                    <div>
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className="text-xs font-mono font-bold text-slate-500">1. manifest.json</span>
-                                            <button onClick={() => handleCopy(extManifest, 'manifest')} className="text-[10px] flex items-center gap-1 px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-                                                {copiedStates['manifest'] ? <Check size={12} /> : <Copy size={12} />} 复制
-                                            </button>
-                                        </div>
-                                        <pre className="bg-slate-100 dark:bg-slate-900 p-3 rounded text-[10px] font-mono text-slate-600 dark:text-slate-300 overflow-x-auto border border-slate-200 dark:border-slate-700">{extManifest}</pre>
-                                    </div>
-
-                                    <div>
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className="text-xs font-mono font-bold text-slate-500">2. popup.html</span>
-                                            <button onClick={() => handleCopy(extPopupHtml, 'html')} className="text-[10px] flex items-center gap-1 px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-                                                {copiedStates['html'] ? <Check size={12} /> : <Copy size={12} />} 复制
-                                            </button>
-                                        </div>
-                                        <pre className="bg-slate-100 dark:bg-slate-900 p-3 rounded text-[10px] font-mono text-slate-600 dark:text-slate-300 overflow-x-auto border border-slate-200 dark:border-slate-700 max-h-32 overflow-y-auto">{extPopupHtml}</pre>
-                                    </div>
-
-                                    <div>
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className="text-xs font-mono font-bold text-slate-500">3. popup.js</span>
-                                            <button onClick={() => handleCopy(extPopupJs, 'js')} className="text-[10px] flex items-center gap-1 px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-                                                {copiedStates['js'] ? <Check size={12} /> : <Copy size={12} />} 复制
-                                            </button>
-                                        </div>
-                                        <pre className="bg-slate-100 dark:bg-slate-900 p-3 rounded text-[10px] font-mono text-slate-600 dark:text-slate-300 overflow-x-auto border border-slate-200 dark:border-slate-700 max-h-32 overflow-y-auto">{extPopupJs}</pre>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
                     {activeTab === 'website' && (
                         <div className="space-y-6">
                             <div>
@@ -418,14 +238,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                     )}
                 </div>
 
-                {(activeTab === 'settings' || activeTab === 'website' || activeTab === 'ai') && (
-                    <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3 shrink-0">
-                        <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg">取消</button>
-                        <button onClick={handleSave} className="px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-lg flex items-center gap-2 font-medium">
-                            <Save size={16} /> 保存设置
-                        </button>
-                    </div>
-                )}
+                <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3 shrink-0">
+                    <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg">取消</button>
+                    <button onClick={handleSave} className="px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-lg flex items-center gap-2 font-medium">
+                        <Save size={16} /> 保存设置
+                    </button>
+                </div>
             </div>
         </div>
     );

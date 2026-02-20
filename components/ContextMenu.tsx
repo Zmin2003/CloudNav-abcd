@@ -129,7 +129,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-1 min-w-[160px]"
+      className="fixed z-50 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-1 min-w-[160px] scale-in"
       style={{
         left: adjustedPosition.x,
         top: adjustedPosition.y
@@ -139,7 +139,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         <button
           key={index}
           onClick={(e) => handleItemClick(e, item.onClick)}
-          className={`w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors ${
+          className={`ctx-menu-item ctx-stagger-${index + 1} w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors ${
             item.className || 'text-slate-700 dark:text-slate-300'
           }`}
         >

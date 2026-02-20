@@ -17,6 +17,15 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
   if (!isOpen) return null;
 
   const generateQRCode = () => {
+    // 验证 URL 安全性
+    try {
+      const parsed = new URL(url);
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        return '';
+      }
+    } catch {
+      return '';
+    }
     // 使用第三方QR码生成服务
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
     return qrCodeUrl;

@@ -129,8 +129,13 @@ export function useSearch(): UseSearchReturn {
     await handleSaveSearchConfig(externalSearchSources, searchMode, authToken, source);
 
     if (searchQuery.trim()) {
-      const searchUrl = source.url.replace('{query}', encodeURIComponent(searchQuery));
-      window.open(searchUrl, '_blank');
+      try {
+        const searchUrl = source.url.replace('{query}', encodeURIComponent(searchQuery));
+        const parsed = new URL(searchUrl);
+        if (['http:', 'https:'].includes(parsed.protocol)) {
+          window.open(searchUrl, '_blank', 'noopener,noreferrer');
+        }
+      } catch { /* ignore invalid URL */ }
     }
     setShowSearchSourcePopup(false);
     setHoveredSearchSource(null);

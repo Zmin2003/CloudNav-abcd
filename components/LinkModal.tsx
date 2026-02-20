@@ -62,15 +62,47 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
   }, [isOpen, initialData, categories, defaultCategoryId]);
 
   // 当URL变化且启用自动获取图标时，自动获取图标
-  // NOTE: handleFetchIcon intentionally omitted from deps to avoid infinite re-fetch loop.
-  // The function captures `url` from state which is already a dependency.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (url && autoFetchIcon && !initialData) {
-      const timer = setTimeout(() => {
-        handleFetchIcon();
-      }, 500);
-      return () => clearTimeout(timer);
+      let cancelled = false;
+      const timer = setTimeout(async () => {
+        if (cancelled || !url) return;
+
+        setIsFetchingIcon(true);
+        try {
+          let domain = url;
+          if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            domain = 'https://' + url;
+          }
+          if (domain.startsWith('http://') || domain.startsWith('https://')) {
+            const urlObj = new URL(domain);
+            domain = urlObj.hostname;
+          }
+
+          // Check cache first
+          try {
+            const response = await fetch(`/api/storage?getConfig=favicon&domain=${encodeURIComponent(domain)}`);
+            if (response.ok) {
+              const data = await response.json();
+              if (data.cached && data.icon) {
+                if (!cancelled) setIcon(data.icon);
+                return;
+              }
+            }
+          } catch { /* ignore */ }
+
+          // Fallback to favicon extractor
+          if (!cancelled) {
+            const iconUrl = `https://www.faviconextractor.com/favicon/${domain}?larger=true`;
+            setIcon(iconUrl);
+          }
+        } catch {
+          // Ignore URL parse errors
+        } finally {
+          if (!cancelled) setIsFetchingIcon(false);
+        }
+      }, 600);
+      return () => { cancelled = true; clearTimeout(timer); };
     }
   }, [url, autoFetchIcon, initialData]);
 
@@ -112,11 +144,35 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title || !url) return;
+    if (!title.trim() || !url.trim()) return;
 
-    let finalUrl = url;
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      finalUrl = 'https://' + url;
+    // URL 长度限制
+    if (url.length > 2048) {
+      alert('URL 过长，最大支持 2048 个字符');
+      return;
+    }
+
+    // 标题长度限制
+    if (title.length > 500) {
+      alert('标题过长，最大支持 500 个字符');
+      return;
+    }
+
+    let finalUrl = url.trim();
+    if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+      finalUrl = 'https://' + finalUrl;
+    }
+
+    // 验证 URL 格式
+    try {
+      const parsed = new URL(finalUrl);
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        alert('仅支持 HTTP/HTTPS 协议的 URL');
+        return;
+      }
+    } catch {
+      alert('URL 格式无效，请检查输入');
+      return;
     }
 
     onSave({

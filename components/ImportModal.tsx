@@ -44,11 +44,33 @@ const ImportModal: React.FC<ImportModalProps> = ({
 
     // Parse JSON backup file
     const parseJsonBackup = async (file: File): Promise<{ links: LinkItem[], categories: Category[], searchConfig?: SearchConfig }> => {
+        // 文件大小限制 (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            throw new Error('File too large (max 10MB)');
+        }
+
         const text = await file.text();
-        const data = JSON.parse(text);
+        let data: any;
+        try {
+            data = JSON.parse(text);
+        } catch {
+            throw new Error('Invalid JSON format');
+        }
+
+        if (!data || typeof data !== 'object') {
+            throw new Error('Invalid backup file format');
+        }
 
         if (!data.links || !Array.isArray(data.links) || !data.categories || !Array.isArray(data.categories)) {
             throw new Error('Invalid backup file format');
+        }
+
+        // 数量限制
+        if (data.links.length > 10000) {
+            throw new Error('Too many links in backup file (max 10000)');
+        }
+        if (data.categories.length > 500) {
+            throw new Error('Too many categories in backup file (max 500)');
         }
 
         return {

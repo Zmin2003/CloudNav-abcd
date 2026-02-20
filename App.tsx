@@ -14,6 +14,12 @@ import { useAppData, safeHostname, ensureProtocol, compareByOrder } from './hook
 import { useSearch } from './hooks/useSearch';
 import { useContextMenu } from './hooks/useContextMenu';
 
+// 生成唯一 ID（避免 Date.now() 冲突）
+let idCounter = 0;
+function generateUniqueId(): string {
+  return `${Date.now()}-${++idCounter}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 // Lazy-loaded modals (code-splitting: only loaded when opened)
 const LinkModal = lazy(() => import('./components/LinkModal'));
 const CategoryManagerModal = lazy(() => import('./components/CategoryManagerModal'));
@@ -397,7 +403,7 @@ function App() {
     const newLink: LinkItem = {
       ...data,
       url: processedUrl,
-      id: Date.now().toString(),
+      id: generateUniqueId(),
       createdAt: Date.now(),
       pinnedOrder: data.pinned ? links.filter(l => l.pinned).length : undefined,
     };
@@ -658,9 +664,9 @@ function App() {
           <main className="flex-1 flex flex-col h-full bg-white/20 dark:bg-slate-900/30 overflow-y-auto relative w-full">
 
             {/* Header */}
-            <header className="bg-white/50 dark:bg-slate-900/60 backdrop-blur-2xl border-b border-white/40 dark:border-white/10 shadow-sm h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between sticky top-0 z-10 shrink-0 safe-area-top safe-area-x">
+            <header className="header-glow bg-white/50 dark:bg-slate-900/60 backdrop-blur-2xl border-b border-white/40 dark:border-white/10 shadow-sm h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between sticky top-0 z-10 shrink-0 safe-area-top safe-area-x">
               <div className="flex items-center gap-4 sm:gap-6">
-                <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+                <span className="brand-glow text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
                   {siteConfig.navigationName || 'Zmin Nav'}
                 </span>
               </div>
@@ -669,33 +675,33 @@ function App() {
               <div className="hidden sm:flex items-center gap-2">
                 <button
                   onClick={() => setIsSettingsModalOpen(true)}
-                  className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all hover:scale-110 active:scale-95"
+                  className="btn-pop p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all hover:scale-110 active:scale-95"
                   title="设置"
                 >
                   <Settings size={20} />
                 </button>
                 <button
                   onClick={() => { if (!authToken) setIsAuthOpen(true); else { setEditingLink(undefined); setPrefillLink(undefined); setIsModalOpen(true); } }}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 rounded-full transition-all shadow-md shadow-blue-500/20 hover:shadow-lg hover:-translate-y-0.5"
+                  className="btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 rounded-full transition-all shadow-md shadow-blue-500/20 hover:shadow-lg hover:-translate-y-0.5"
                 >
                   <Plus size={14} /> 添加
                 </button>
                 <button
                   onClick={() => { if (!authToken) setIsAuthOpen(true); else setIsImportModalOpen(true); }}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full border border-slate-300 dark:border-slate-600 transition-all hover:shadow-sm"
+                  className="btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full border border-slate-300 dark:border-slate-600 transition-all hover:shadow-sm"
                 >
                   <Upload size={14} /> 导入
                 </button>
                 <button
                   onClick={() => { if (!authToken) setIsAuthOpen(true); else setIsCatManagerOpen(true); }}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full border border-slate-300 dark:border-slate-600 transition-all hover:shadow-sm"
+                  className="btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full border border-slate-300 dark:border-slate-600 transition-all hover:shadow-sm"
                 >
                   <Settings size={14} /> 分类
                 </button>
                 <button
                   onClick={handleAiSort}
                   disabled={isAiSorting}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full transition-all disabled:opacity-60 shadow-md shadow-pink-500/20 hover:shadow-lg hover:-translate-y-0.5"
+                  className="btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full transition-all disabled:opacity-60 shadow-md shadow-pink-500/20 hover:shadow-lg hover:-translate-y-0.5"
                   title="AI 智能整理书签"
                 >
                   {isAiSorting ? <Loader2 size={14} className="animate-spin" /> : <Bot size={14} />} AI 整理
@@ -769,7 +775,7 @@ function App() {
                 </h1>
 
                 {/* 搜索框 */}
-                <div className="relative w-full max-w-2xl mx-auto shadow-2xl shadow-blue-500/20 rounded-full group search-glow transition-all duration-300 hover:shadow-blue-500/30 hover:-translate-y-1">
+                <div className="relative w-full max-w-2xl mx-auto shadow-2xl shadow-blue-500/20 rounded-full group search-glow search-focus-ring transition-all duration-300 hover:shadow-blue-500/30 hover:-translate-y-1">
                   {/* 搜索源选择弹出窗口 */}
                   {showSearchSourcePopup && (
                     <div
@@ -842,8 +848,14 @@ function App() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && selectedSearchSource) {
-                        const searchUrl = selectedSearchSource.url.replace('{query}', encodeURIComponent(searchQuery));
-                        window.open(searchUrl, '_blank');
+                        // 安全校验搜索 URL
+                        try {
+                          const searchUrl = selectedSearchSource.url.replace('{query}', encodeURIComponent(searchQuery));
+                          const parsed = new URL(searchUrl);
+                          if (['http:', 'https:'].includes(parsed.protocol)) {
+                            window.open(searchUrl, '_blank', 'noopener,noreferrer');
+                          }
+                        } catch { /* ignore invalid URL */ }
                       }
                     }}
                     className="w-full pl-14 pr-14 py-4 rounded-full bg-white/40 dark:bg-slate-800/60 backdrop-blur-2xl border-2 border-white/60 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)] text-base focus:border-blue-500 focus:bg-white/70 dark:focus:bg-slate-800/80 focus:ring-4 focus:ring-blue-500/20 dark:focus:border-blue-500 dark:text-white placeholder-slate-700/60 dark:placeholder-slate-300/60 outline-none transition-all"
@@ -853,8 +865,13 @@ function App() {
                     <button
                       onClick={() => {
                         if (selectedSearchSource) {
-                          const searchUrl = selectedSearchSource.url.replace('{query}', encodeURIComponent(searchQuery));
-                          window.open(searchUrl, '_blank');
+                          try {
+                            const searchUrl = selectedSearchSource.url.replace('{query}', encodeURIComponent(searchQuery));
+                            const parsed = new URL(searchUrl);
+                            if (['http:', 'https:'].includes(parsed.protocol)) {
+                              window.open(searchUrl, '_blank', 'noopener,noreferrer');
+                            }
+                          } catch { /* ignore invalid URL */ }
                         }
                       }}
                       className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors shadow-sm"
@@ -902,7 +919,7 @@ function App() {
 
                     return (
                       <section key={cat.id} id={`cat-${cat.id}`} className="fade-up" style={{ animationDelay: `${index * 60}ms` }}>
-                        <div className="flex items-center gap-2 mb-4">
+                        <div className="flex items-center gap-2 mb-4 cat-title-line">
                           <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
                             <Icon name={cat.icon} size={18} />
                           </div>
@@ -912,7 +929,7 @@ function App() {
                         </div>
 
                         {isLocked ? (
-                          <div className="flex flex-col items-center justify-center py-8 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
+                          <div className="locked-shimmer flex flex-col items-center justify-center py-8 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
                             <Lock size={24} className="text-amber-500 mb-2" />
                             <p className="text-slate-500 text-sm mb-3">此分类已锁定</p>
                             <button

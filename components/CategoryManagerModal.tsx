@@ -329,8 +329,8 @@ const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({
              <div className="flex gap-2">
                  <div className="flex-1 relative">
                     <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input 
-                        type="text"
+                     <input 
+                        type="password"
                         value={newCatPassword}
                         onChange={(e) => setNewCatPassword(e.target.value)}
                         placeholder="密码 (可选)"

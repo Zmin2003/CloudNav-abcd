@@ -99,8 +99,11 @@ const BackupModal: React.FC<BackupModalProps> = ({
         a.download = 'cloudnav_backup.json';
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        // 延迟清理避免下载尚未开始就释放
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 100);
     };
 
     if (!isOpen) return null;

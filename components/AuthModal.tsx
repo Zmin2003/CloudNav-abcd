@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Lock, ArrowRight, Loader2 } from 'lucide-react';
 
 interface AuthModalProps {
@@ -6,28 +6,73 @@ interface AuthModalProps {
   onLogin: (password: string) => Promise<boolean>;
 }
 
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 60 * 1000; // 1 minute lockout
+
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onLogin }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isLockedOut, setIsLockedOut] = useState(false);
+  const [lockoutRemaining, setLockoutRemaining] = useState(0);
+  const attemptCount = useRef(0);
+  const lockoutTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startLockout = useCallback(() => {
+    setIsLockedOut(true);
+    setLockoutRemaining(LOCKOUT_DURATION_MS / 1000);
+    
+    if (lockoutTimer.current) clearInterval(lockoutTimer.current);
+    
+    lockoutTimer.current = setInterval(() => {
+      setLockoutRemaining(prev => {
+        if (prev <= 1) {
+          if (lockoutTimer.current) clearInterval(lockoutTimer.current);
+          setIsLockedOut(false);
+          attemptCount.current = 0;
+          setError('');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isLockedOut) return;
+    if (!password.trim()) return;
+    
     setIsLoading(true);
     setError('');
     
     const success = await onLogin(password);
     if (!success) {
-      setError('密码错误或无法连接服务器');
+      attemptCount.current += 1;
+      
+      if (attemptCount.current >= MAX_ATTEMPTS) {
+        setError(`登录尝试过多，请等待 ${LOCKOUT_DURATION_MS / 1000} 秒后重试`);
+        startLockout();
+      } else {
+        const remaining = MAX_ATTEMPTS - attemptCount.current;
+        setError(`密码错误或无法连接服务器（剩余 ${remaining} 次尝试机会）`);
+      }
+    } else {
+      attemptCount.current = 0;
     }
     setIsLoading(false);
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden border border-slate-200 dark:border-slate-700 p-8">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md modal-particles">
+      {/* Floating decorative orbs */}
+      <div className="auth-orb-1" style={{ top: '10%', left: '5%' }} />
+      <div className="auth-orb-2" style={{ bottom: '15%', right: '8%' }} />
+
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden border border-slate-200 dark:border-slate-700 p-8 relative z-10">
         <div className="flex flex-col items-center mb-6">
           <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4 text-blue-600 dark:text-blue-400">
             <Lock size={32} />
@@ -47,18 +92,27 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onLogin }) => {
               className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-center tracking-widest"
               placeholder="访问密码"
               autoFocus
+              disabled={isLockedOut}
+              maxLength={200}
+              autoComplete="current-password"
             />
           </div>
 
           {error && (
-            <div className="text-red-500 text-sm text-center font-medium">
+            <div className="error-shake text-red-500 text-sm text-center font-medium">
               {error}
+            </div>
+          )}
+
+          {isLockedOut && (
+            <div className="text-amber-600 dark:text-amber-400 text-sm text-center font-medium">
+              请等待 {lockoutRemaining} 秒后重试
             </div>
           )}
 
           <button
             type="submit"
-            disabled={isLoading || !password}
+            disabled={isLoading || !password || isLockedOut}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-xl transition-colors shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2"
           >
             {isLoading ? <Loader2 className="animate-spin" /> : <>解锁进入 <ArrowRight size={18} /></>}

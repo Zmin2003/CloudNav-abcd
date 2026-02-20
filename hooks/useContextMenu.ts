@@ -63,8 +63,23 @@ export function useContextMenu(): UseContextMenuReturn {
 
   const copyLinkToClipboard = useCallback(() => {
     if (!contextMenu.link) return;
-    navigator.clipboard.writeText(contextMenu.link.url)
-      .then(() => console.log('链接已复制到剪贴板'))
+    const url = contextMenu.link.url;
+    
+    // 安全校验：只复制 HTTP/HTTPS 链接
+    try {
+      const parsed = new URL(url);
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        console.warn('拒绝复制非 HTTP(S) 链接');
+        setContextMenu(INITIAL_CONTEXT_MENU);
+        return;
+      }
+    } catch {
+      console.warn('链接格式无效');
+      setContextMenu(INITIAL_CONTEXT_MENU);
+      return;
+    }
+
+    navigator.clipboard.writeText(url)
       .catch(err => console.error('复制链接失败:', err));
     setContextMenu(INITIAL_CONTEXT_MENU);
   }, [contextMenu.link]);
