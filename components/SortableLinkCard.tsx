@@ -38,12 +38,15 @@ export const SortableLinkCard: React.FC<SortableLinkCardProps> = React.memo(({
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      className={`group relative transition-all duration-200 cursor-grab active:cursor-grabbing min-w-0 max-w-full overflow-hidden hover:shadow-lg hover:shadow-blue-100/50 dark:hover:shadow-blue-900/20 flex items-center rounded-xl border shadow-sm hover:border-blue-300 dark:hover:border-blue-600 ${
+      className={`group relative cursor-grab active:cursor-grabbing min-w-0 max-w-full overflow-hidden flex items-center rounded-xl border shadow-sm ${
         isSortingMode || isSortingPinned
           ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800'
           : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
       } ${isDragging ? 'shadow-2xl scale-105' : ''}`}
+      style={{
+        ...style,
+        willChange: isDragging ? 'transform' : undefined,
+      }}
       {...attributes}
       {...listeners}
     >

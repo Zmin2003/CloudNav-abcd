@@ -31,20 +31,28 @@ const PALETTE = [
   { edge: '#e879f9', mid: '#fae8ff', base: '#fdf4ff', vein: '#d946ef' },
 ];
 
-const PETAL_COUNT = 45; // slightly increased for richer effect
+// Reduce petal count on mobile for performance (evaluated lazily at first use)
+function getPetalCount(): number {
+  if (typeof window === 'undefined') return 25;
+  const isMobile = 'ontouchstart' in window || window.innerWidth < 768;
+  return isMobile ? 25 : 45;
+}
 
 // ==================== Create ====================
 
 function create(w: number, h: number, top: boolean): Petal {
+  // Guard against zero-dimension viewport (mobile initial paint)
+  const safeW = Math.max(w, 320);
+  const safeH = Math.max(h, 480);
   return {
-    x: Math.random() * w,
-    y: top ? -(20 + Math.random() * 50) : Math.random() * h,
-    size: 12 + Math.random() * 16, // slightly larger
+    x: Math.random() * safeW,
+    y: top ? -(20 + Math.random() * 50) : Math.random() * safeH,
+    size: 12 + Math.random() * 16,
     speedY: 0.3 + Math.random() * 0.6,
     speedX: -0.15 + Math.random() * 0.3,
     rot: Math.random() * Math.PI * 2,
     rotSpeed: (-0.4 + Math.random() * 0.8) * 0.02,
-    opacity: 0.7 + Math.random() * 0.3, // higher minimum opacity
+    opacity: 0.7 + Math.random() * 0.3,
     phase: Math.random() * Math.PI * 2,
     swingFreq: 0.005 + Math.random() * 0.01,
     swingAmp: 0.5 + Math.random() * 1.0,
@@ -59,7 +67,7 @@ function create(w: number, h: number, top: boolean): Petal {
 
 // ==================== Draw ====================
 
-function drawPetal(ctx: CanvasRenderingContext2D, p: Petal, t: number) {
+function drawPetal(ctx: CanvasRenderingContext2D, p: Petal, _t: number, useShadow: boolean) {
   const s = p.size;
   const c = PALETTE[p.colorIdx];
   const flipScale = 0.35 + Math.abs(Math.cos(p.flipAngle)) * 0.65;
@@ -73,10 +81,12 @@ function drawPetal(ctx: CanvasRenderingContext2D, p: Petal, t: number) {
   ctx.scale(flipScale, 1);
   ctx.globalAlpha = p.opacity;
 
-  // Enhance Glow Effect
-  ctx.shadowColor = 'rgba(255,180,220,0.6)'; // more vibrant shadow
-  ctx.shadowBlur = s * 1.2; // stronger blur
-  ctx.shadowOffsetY = s * 0.2; // stronger offset
+  // Shadow only on desktop (very expensive on mobile GPU)
+  if (useShadow) {
+    ctx.shadowColor = 'rgba(255,180,220,0.6)';
+    ctx.shadowBlur = s * 1.2;
+    ctx.shadowOffsetY = s * 0.2;
+  }
 
   // Main petal gradient
   const grad = ctx.createLinearGradient(0, 0, s, 0);
@@ -97,8 +107,10 @@ function drawPetal(ctx: CanvasRenderingContext2D, p: Petal, t: number) {
   ctx.closePath();
   ctx.fill();
 
-  ctx.shadowColor = 'transparent';
-  ctx.shadowBlur = 0;
+  if (useShadow) {
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+  }
 
   // Veins
   ctx.globalAlpha = p.opacity * 0.25;
@@ -124,7 +136,7 @@ function drawPetal(ctx: CanvasRenderingContext2D, p: Petal, t: number) {
 
   // Curl / fold highlight
   if (Math.abs(curlVal) > 0.05) {
-    ctx.globalAlpha = p.opacity * Math.abs(curlVal) * 0.7; // slightly stronger
+    ctx.globalAlpha = p.opacity * Math.abs(curlVal) * 0.7;
     const side = curlVal > 0 ? -1 : 1;
     const curlGrad = ctx.createLinearGradient(s * 0.3, 0, s * 0.9, side * bodyW * -0.6);
     curlGrad.addColorStop(0, 'rgba(255,255,255,0)');
@@ -141,14 +153,16 @@ function drawPetal(ctx: CanvasRenderingContext2D, p: Petal, t: number) {
     ctx.fill();
   }
 
-  // Edge rim light
-  ctx.globalAlpha = p.opacity * 0.15;
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 0.6;
-  ctx.beginPath();
-  ctx.moveTo(s * 0.5, -bodyW * 0.95);
-  ctx.quadraticCurveTo(s * 0.85, -bodyW * 0.5, s, -notchDepth);
-  ctx.stroke();
+  // Edge rim light (only on desktop for perf)
+  if (useShadow) {
+    ctx.globalAlpha = p.opacity * 0.15;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 0.6;
+    ctx.beginPath();
+    ctx.moveTo(s * 0.5, -bodyW * 0.95);
+    ctx.quadraticCurveTo(s * 0.85, -bodyW * 0.5, s, -notchDepth);
+    ctx.stroke();
+  }
 
   ctx.restore();
 }
@@ -164,6 +178,7 @@ const SakuraBackground: React.FC<SakuraProps> = ({ enabled = true }) => {
   const petalsRef = useRef<Petal[]>([]);
   const frameRef = useRef<number>(0);
   const tRef = useRef<number>(0);
+  const sizeRef = useRef<{ w: number; h: number }>({ w: 0, h: 0 });
 
   useEffect(() => {
     if (!enabled) {
@@ -181,53 +196,76 @@ const SakuraBackground: React.FC<SakuraProps> = ({ enabled = true }) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Detect if touch device for performance optimisations
+    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const useShadow = !isTouch;
+
     const resize = () => {
       const dpr = window.devicePixelRatio || 1;
-      canvas.width = window.innerWidth * dpr;
-      canvas.height = window.innerHeight * dpr;
-      canvas.style.width = window.innerWidth + 'px';
-      canvas.style.height = window.innerHeight + 'px';
+      const w = window.innerWidth || document.documentElement.clientWidth || 320;
+      const h = window.innerHeight || document.documentElement.clientHeight || 480;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      sizeRef.current = { w, h };
+
+      // Redistribute petals if they were initialised with stale dimensions
+      if (petalsRef.current.length > 0) {
+        for (let i = 0; i < petalsRef.current.length; i++) {
+          const p = petalsRef.current[i];
+          // If petal is outside new viewport, re-create it
+          if (p.x < -50 || p.x > w + 50 || p.y > h + 50) {
+            petalsRef.current[i] = create(w, h, false);
+          }
+        }
+      }
     };
-    resize();
-    window.addEventListener('resize', resize);
 
-    const w = () => window.innerWidth;
-    const h = () => window.innerHeight;
+    // Delay initial resize slightly to let mobile browsers settle layout
+    const initTimer = setTimeout(() => {
+      resize();
 
-    petalsRef.current = Array.from({ length: PETAL_COUNT }, () => create(w(), h(), false));
+      const { w, h } = sizeRef.current;
+      petalsRef.current = Array.from({ length: getPetalCount() }, () => create(w, h, false));
 
-    const animate = () => {
-      tRef.current += 1;
-      const t = tRef.current;
-      ctx.clearRect(0, 0, w(), h());
+      const animate = () => {
+        tRef.current += 1;
+        const t = tRef.current;
+        const { w: cw, h: ch } = sizeRef.current;
+        ctx.clearRect(0, 0, cw, ch);
 
-      for (let i = 0; i < petalsRef.current.length; i++) {
-        const p = petalsRef.current[i];
+        for (let i = 0; i < petalsRef.current.length; i++) {
+          const p = petalsRef.current[i];
 
-        const drift = Math.sin(t * p.swingFreq + p.phase) * p.swingAmp;
-        const gustX = Math.sin(t * 0.002 + p.phase * 2) * 0.2; // stronger gust
+          const drift = Math.sin(t * p.swingFreq + p.phase) * p.swingAmp;
+          const gustX = Math.sin(t * 0.002 + p.phase * 2) * 0.2;
 
-        p.x += p.speedX + drift + gustX;
-        p.y += p.speedY + Math.cos(t * p.swingFreq * 0.7 + p.phase) * 0.1;
-        p.rot += p.rotSpeed + drift * 0.006;
-        p.flipAngle += p.flipSpeed;
-        p.curlAngle += p.curlSpeed;
+          p.x += p.speedX + drift + gustX;
+          p.y += p.speedY + Math.cos(t * p.swingFreq * 0.7 + p.phase) * 0.1;
+          p.rot += p.rotSpeed + drift * 0.006;
+          p.flipAngle += p.flipSpeed;
+          p.curlAngle += p.curlSpeed;
 
-        if (p.y > h() + 50 || p.x < -50 || p.x > w() + 50) {
-          petalsRef.current[i] = create(w(), h(), true);
-          continue;
+          if (p.y > ch + 50 || p.x < -50 || p.x > cw + 50) {
+            petalsRef.current[i] = create(cw, ch, true);
+            continue;
+          }
+
+          drawPetal(ctx, p, t, useShadow);
         }
 
-        drawPetal(ctx, p, t);
-      }
+        frameRef.current = requestAnimationFrame(animate);
+      };
 
       frameRef.current = requestAnimationFrame(animate);
-    };
+    }, 50);
 
-    animate();
+    window.addEventListener('resize', resize);
 
     return () => {
+      clearTimeout(initTimer);
       window.removeEventListener('resize', resize);
       cancelAnimationFrame(frameRef.current);
     };
@@ -236,8 +274,8 @@ const SakuraBackground: React.FC<SakuraProps> = ({ enabled = true }) => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-[-1]"
-      style={{ opacity: 1, position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh' }}
+      className="fixed inset-0 pointer-events-none"
+      style={{ zIndex: -1 }}
     />
   );
 };

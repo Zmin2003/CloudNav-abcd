@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Copy, QrCode, Edit2, Trash2, Pin, X } from 'lucide-react';
 
 interface ContextMenuProps {
@@ -47,14 +47,12 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = '';
     };
@@ -77,14 +75,36 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     onClose();
   };
 
+  /**
+   * Mobile backdrop: intercept ALL touch events to prevent them from reaching
+   * cards underneath. Without this, tapping blank area to dismiss the menu
+   * would also trigger the card link behind the backdrop.
+   */
+  const handleBackdropTouch = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onClose();
+  };
+
   // Mobile: bottom action sheet
   if (isMobile) {
     return (
-      <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm fade-in" onClick={onClose}>
+      <div
+        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm fade-in"
+        onClick={onClose}
+        onTouchStart={(e) => {
+          // Only close if touching the backdrop itself (not the sheet)
+          if (menuRef.current && menuRef.current.contains(e.target as Node)) return;
+          handleBackdropTouch(e);
+        }}
+        onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); }}
+      >
         <div
           ref={menuRef}
           className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-800 rounded-t-2xl shadow-2xl safe-area-bottom slide-up-sheet"
           onClick={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
         >
           {/* Drag handle */}
           <div className="flex justify-center pt-3 pb-1">

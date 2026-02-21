@@ -261,7 +261,7 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[90vh] sm:max-h-[85vh] overflow-y-auto border border-slate-200 dark:border-slate-700 safe-area-bottom">
+      <div className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[90dvh] sm:max-h-[85dvh] overflow-y-auto border border-slate-200 dark:border-slate-700 safe-area-bottom">
         <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold dark:text-white">

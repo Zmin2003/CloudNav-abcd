@@ -572,7 +572,7 @@ function App() {
   // --- Render ---
 
   return (
-    <div className="flex h-screen overflow-hidden text-slate-900 dark:text-slate-50 relative z-10 w-full">
+    <div className="flex h-dvh overflow-hidden text-slate-900 dark:text-slate-50 relative z-10 w-full">
       {/* 樱花飘落背景 (Canvas sits at z-0 inside this z-10 container) */}
       <SakuraBackground enabled={siteConfig.sakuraEnabled !== false} />
       {/* 认证遮罩层 */}
@@ -664,7 +664,7 @@ function App() {
           <main className="flex-1 flex flex-col h-full bg-white/20 dark:bg-slate-900/30 overflow-y-auto relative w-full">
 
             {/* Header */}
-            <header className="header-glow bg-white/50 dark:bg-slate-900/60 backdrop-blur-2xl border-b border-white/40 dark:border-white/10 shadow-sm h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between sticky top-0 z-10 shrink-0 safe-area-top safe-area-x">
+            <header className="header-glow bg-white/60 dark:bg-slate-900/70 backdrop-blur-lg border-b border-white/40 dark:border-white/10 shadow-sm h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between sticky top-0 z-10 shrink-0 safe-area-top safe-area-x" style={{ transform: 'translateZ(0)' }}>
               <div className="flex items-center gap-4 sm:gap-6">
                 <span className="brand-glow text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
                   {siteConfig.navigationName || 'Zmin Nav'}
@@ -779,7 +779,7 @@ function App() {
                   {/* 搜索源选择弹出窗口 */}
                   {showSearchSourcePopup && (
                     <div
-                      className="absolute left-0 top-full mt-4 w-full bg-white/60 dark:bg-slate-800/70 backdrop-blur-3xl border border-white/50 dark:border-white/10 rounded-3xl p-4 z-50 scale-in shadow-xl shadow-black/5"
+                      className="absolute left-0 top-full mt-4 w-full bg-white/70 dark:bg-slate-800/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl p-4 z-50 scale-in shadow-xl shadow-black/5"
                       onMouseEnter={() => setIsPopupHovered(true)}
                       onMouseLeave={() => setIsPopupHovered(false)}
                     >
@@ -858,7 +858,7 @@ function App() {
                         } catch { /* ignore invalid URL */ }
                       }
                     }}
-                    className="w-full pl-14 pr-14 py-4 rounded-full bg-white/40 dark:bg-slate-800/60 backdrop-blur-2xl border-2 border-white/60 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)] text-base focus:border-blue-500 focus:bg-white/70 dark:focus:bg-slate-800/80 focus:ring-4 focus:ring-blue-500/20 dark:focus:border-blue-500 dark:text-white placeholder-slate-700/60 dark:placeholder-slate-300/60 outline-none transition-all"
+                    className="w-full pl-14 pr-14 py-4 rounded-full bg-white/50 dark:bg-slate-800/60 backdrop-blur-lg border-2 border-white/60 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)] text-base focus:border-blue-500 focus:bg-white/70 dark:focus:bg-slate-800/80 focus:ring-4 focus:ring-blue-500/20 dark:focus:border-blue-500 dark:text-white placeholder-slate-700/60 dark:placeholder-slate-300/60 outline-none transition-colors"
                   />
 
                   {searchQuery.trim() && (

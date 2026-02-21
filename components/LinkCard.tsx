@@ -24,11 +24,15 @@ const LinkCard: React.FC<LinkCardProps> = ({
 }) => {
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggered = useRef(false);
+  // Cooldown: suppress navigation for a short window after context menu fires
+  const cooldownUntil = useRef<number>(0);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     longPressTriggered.current = false;
     longPressTimer.current = setTimeout(() => {
       longPressTriggered.current = true;
+      // Set a cooldown so that the next click within 400ms is suppressed
+      cooldownUntil.current = Date.now() + 400;
       // Synthesize a mouse event at the touch position for the context menu
       const touch = e.touches[0];
       const syntheticEvent = {
@@ -41,10 +45,14 @@ const LinkCard: React.FC<LinkCardProps> = ({
     }, 500);
   }, [link, onContextMenu]);
 
-  const handleTouchEnd = useCallback(() => {
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
+    }
+    // If a long press was triggered, prevent the subsequent click/navigation
+    if (longPressTriggered.current) {
+      e.preventDefault();
     }
   }, []);
 
@@ -56,7 +64,8 @@ const LinkCard: React.FC<LinkCardProps> = ({
   }, []);
 
   const handleClick = useCallback((e: React.MouseEvent) => {
-    if (longPressTriggered.current) {
+    // Block click if we're in the cooldown window (context menu just closed)
+    if (longPressTriggered.current || Date.now() < cooldownUntil.current) {
       e.preventDefault();
       e.stopPropagation();
       return;
@@ -65,6 +74,14 @@ const LinkCard: React.FC<LinkCardProps> = ({
       onToggleSelection(link.id);
     }
   }, [isBatchEditMode, link.id, onToggleSelection]);
+
+  // Also guard the <a> tag's own click to prevent navigation after long press
+  const handleLinkClick = useCallback((e: React.MouseEvent) => {
+    if (longPressTriggered.current || Date.now() < cooldownUntil.current) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, []);
 
   // 安全校验 URL，防止 javascript: 协议等 XSS
   const safeUrl = (() => {
@@ -93,7 +110,7 @@ const LinkCard: React.FC<LinkCardProps> = ({
   const content = (
     <div className="flex items-center gap-3 w-full">
       {/* Icon */}
-      <div className="text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-bold uppercase shrink-0 w-8 h-8 rounded-xl bg-white/40 dark:bg-slate-700/40 icon-hover-float backdrop-blur-md">
+      <div className="text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-bold uppercase shrink-0 w-8 h-8 rounded-xl bg-white/40 dark:bg-slate-700/40 icon-hover-float">
         {iconElement}
       </div>
       {/* Title */}
@@ -109,8 +126,8 @@ const LinkCard: React.FC<LinkCardProps> = ({
   return (
     <div
       key={link.id}
-      className={`group relative touch-none-select card-shimmer card-glow-ring transition-all duration-300 ease-out hover:shadow-xl hover:shadow-blue-300/40 dark:hover:shadow-blue-900/40 hover:-translate-y-1 hover:scale-[1.03] flex items-center justify-between rounded-2xl shadow-sm p-3 hover:border-blue-400 dark:hover:border-blue-500 active:scale-[0.98]
-        bg-white/40 dark:bg-slate-800/50 backdrop-blur-2xl border border-white/60 dark:border-white/10 ${isSelected
+      className={`group relative touch-none-select card-shimmer card-glow-ring flex items-center justify-between rounded-2xl shadow-sm p-3
+        bg-white/40 dark:bg-slate-800/50 backdrop-blur-md border border-white/60 dark:border-white/10 card-touch-optimized ${isSelected
           ? 'bg-red-50/70 border-red-300 dark:bg-red-900/40 dark:border-red-700'
           : 'border-white/40 dark:border-slate-600/50'
         } ${isBatchEditMode ? 'cursor-pointer' : ''}`}
@@ -135,7 +152,7 @@ const LinkCard: React.FC<LinkCardProps> = ({
           target="_blank"
           rel="noopener noreferrer"
           className="flex flex-1 min-w-0 overflow-hidden h-full items-center"
-          onClick={(e) => { if (longPressTriggered.current) e.preventDefault(); }}
+          onClick={handleLinkClick}
         >
           {content}
         </a>

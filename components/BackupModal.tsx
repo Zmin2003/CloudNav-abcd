@@ -110,7 +110,7 @@ const BackupModal: React.FC<BackupModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl overflow-hidden border border-slate-200 dark:border-slate-700 max-h-[90vh] flex flex-col safe-area-bottom">
+            <div className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl overflow-hidden border border-slate-200 dark:border-slate-700 max-h-[90dvh] flex flex-col safe-area-bottom">
                 <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700">
                     <h3 className="text-lg font-semibold dark:text-white flex items-center gap-2">
                         <Cloud className="text-blue-500" /> 备份与恢复

@@ -165,7 +165,7 @@ body {
   0% { transform: translateY(0) translateX(0); opacity: 0; }
   10% { opacity: 1; }
   90% { opacity: 1; }
-  100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+  100% { transform: translateY(-100dvh) translateX(50px); opacity: 0; }
 }
 
 /* --- New: Ripple effect --- */
@@ -233,6 +233,7 @@ body {
 
 .fab-pulse {
   animation: fabPulse 3s ease-in-out infinite;
+  will-change: transform, box-shadow;
 }
 
 .error-shake {
@@ -241,17 +242,23 @@ body {
 
 /* ==================== Card Effects ==================== */
 
-/* Icon hover: bounce + glow */
+/* Icon hover: bounce (desktop only, no shadow on mobile for perf) */
 .icon-hover-float {
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .group:hover .icon-hover-float {
   animation: iconBounce 0.5s ease both;
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
 }
 
-/* Card shimmer sweep on hover */
+/* Desktop-only icon glow (shadow is expensive on mobile) */
+@media (hover: hover) {
+  .group:hover .icon-hover-float {
+    filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.25));
+  }
+}
+
+/* Card shimmer sweep on hover (desktop only) */
 .card-shimmer {
   position: relative;
   overflow: hidden;
@@ -275,8 +282,10 @@ body {
   z-index: 1;
 }
 
-.card-shimmer:hover::after {
-  animation: shimmerSweep 0.75s ease-out;
+@media (hover: hover) {
+  .card-shimmer:hover::after {
+    animation: shimmerSweep 0.75s ease-out;
+  }
 }
 
 .dark .card-shimmer::after {
@@ -290,28 +299,61 @@ body {
   );
 }
 
+/* Disable shimmer pseudo-element on touch devices to save GPU */
+@media (hover: none) {
+  .card-shimmer::after {
+    display: none;
+  }
+}
+
 /* Pinned badge glow */
 .pinned-badge {
   animation: badgeBreath 2s ease-in-out infinite;
 }
 
-/* Card hover glow ring */
+/* Card hover glow ring (desktop only) */
 .card-glow-ring {
   transition: box-shadow 0.35s ease;
 }
 
-.card-glow-ring:hover {
-  box-shadow:
-    0 0 0 1px rgba(59, 130, 246, 0.15),
-    0 8px 25px -5px rgba(59, 130, 246, 0.2),
-    0 20px 50px -12px rgba(59, 130, 246, 0.15);
+@media (hover: hover) {
+  .card-glow-ring:hover {
+    box-shadow:
+      0 0 0 1px rgba(59, 130, 246, 0.15),
+      0 8px 25px -5px rgba(59, 130, 246, 0.2),
+      0 20px 50px -12px rgba(59, 130, 246, 0.15);
+  }
+
+  .dark .card-glow-ring:hover {
+    box-shadow:
+      0 0 0 1px rgba(96, 165, 250, 0.15),
+      0 8px 25px -5px rgba(59, 130, 246, 0.25),
+      0 20px 50px -12px rgba(59, 130, 246, 0.2);
+  }
 }
 
-.dark .card-glow-ring:hover {
-  box-shadow:
-    0 0 0 1px rgba(96, 165, 250, 0.15),
-    0 8px 25px -5px rgba(59, 130, 246, 0.25),
-    0 20px 50px -12px rgba(59, 130, 246, 0.2);
+/* GPU-optimised card transitions for mobile */
+.card-touch-optimized {
+  /* Only transition GPU-friendly properties */
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  will-change: transform;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+@media (hover: hover) {
+  .card-touch-optimized:hover {
+    transform: translateY(-3px) scale(1.03) translateZ(0);
+    box-shadow: 0 12px 24px -4px rgba(59, 130, 246, 0.18);
+    border-color: rgba(96, 165, 250, 0.5);
+  }
+}
+
+/* On touch devices, only show active feedback (no hover) */
+@media (hover: none) {
+  .card-touch-optimized:active {
+    transform: scale(0.97) translateZ(0);
+  }
 }
 
 /* ==================== Search Bar ==================== */
@@ -355,6 +397,7 @@ body {
   animation: orbFloat1 12s ease-in-out infinite;
   filter: blur(40px);
   pointer-events: none;
+  will-change: transform;
 }
 
 .auth-orb-2 {
@@ -366,6 +409,7 @@ body {
   animation: orbFloat2 15s ease-in-out infinite;
   filter: blur(40px);
   pointer-events: none;
+  will-change: transform;
 }
 
 .dark .auth-orb-1 {
