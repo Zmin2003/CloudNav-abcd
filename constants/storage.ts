@@ -11,23 +11,3 @@ export const STORAGE_KEYS = {
   /** 主题设置 */
   THEME: 'theme',
 } as const;
-
-// GitHub 仓库地址
-export const GITHUB_REPO_URL = 'https://github.com/Zmin2003/CloudNav-abcd';
-
-// API 端点
-export const API_ENDPOINTS = {
-  STORAGE: '/api/storage',
-} as const;
-
-// 主题模式
-export const THEME_MODES = {
-  LIGHT: 'light',
-  DARK: 'dark',
-} as const;
-
-// 同步状态
-export type SyncStatus = 'idle' | 'saving' | 'saved' | 'error';
-
-// 排序模式
-export type SortingMode = string | null;
