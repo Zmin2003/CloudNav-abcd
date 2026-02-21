@@ -178,7 +178,7 @@ const SakuraBackground: React.FC<SakuraProps> = ({ enabled = true }) => {
   const petalsRef = useRef<Petal[]>([]);
   const frameRef = useRef<number>(0);
   const tRef = useRef<number>(0);
-  const sizeRef = useRef<{ w: number; h: number }>({ w: 0, h: 0 });
+  const sizeRef = useRef<{ w: number; h: number; dpr: number }>({ w: 0, h: 0, dpr: 1 });
 
   useEffect(() => {
     if (!enabled) {
@@ -209,7 +209,7 @@ const SakuraBackground: React.FC<SakuraProps> = ({ enabled = true }) => {
       canvas.style.width = w + 'px';
       canvas.style.height = h + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      sizeRef.current = { w, h };
+      sizeRef.current = { w, h, dpr };
 
       // Redistribute petals if they were initialised with stale dimensions
       if (petalsRef.current.length > 0) {
@@ -233,7 +233,13 @@ const SakuraBackground: React.FC<SakuraProps> = ({ enabled = true }) => {
       const animate = () => {
         tRef.current += 1;
         const t = tRef.current;
-        const { w: cw, h: ch } = sizeRef.current;
+        const { w: cw, h: ch, dpr } = sizeRef.current;
+
+        const transform = ctx.getTransform();
+        if (transform.a !== dpr || transform.d !== dpr || transform.e !== 0 || transform.f !== 0) {
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
         ctx.clearRect(0, 0, cw, ch);
 
         for (let i = 0; i < petalsRef.current.length; i++) {
@@ -262,11 +268,20 @@ const SakuraBackground: React.FC<SakuraProps> = ({ enabled = true }) => {
       frameRef.current = requestAnimationFrame(animate);
     }, 50);
 
+    const handleRestore = () => {
+      if (document.visibilityState === 'hidden') return;
+      resize();
+    };
+
     window.addEventListener('resize', resize);
+    window.addEventListener('pageshow', handleRestore);
+    document.addEventListener('visibilitychange', handleRestore);
 
     return () => {
       clearTimeout(initTimer);
       window.removeEventListener('resize', resize);
+      window.removeEventListener('pageshow', handleRestore);
+      document.removeEventListener('visibilitychange', handleRestore);
       cancelAnimationFrame(frameRef.current);
     };
   }, [enabled]);
