@@ -25,6 +25,17 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
 
+  const suppressGhostClick = useCallback(() => {
+    const blockClick = (event: MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    document.addEventListener('click', blockClick, true);
+    window.setTimeout(() => {
+      document.removeEventListener('click', blockClick, true);
+    }, 450);
+  }, []);
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 640);
     checkMobile();
@@ -83,6 +94,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   const handleBackdropTouch = (e: React.TouchEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    suppressGhostClick();
     onClose();
   };
 
@@ -91,7 +103,12 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     return (
       <div
         className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm fade-in"
-        onClick={onClose}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          suppressGhostClick();
+          onClose();
+        }}
         onTouchStart={(e) => {
           // Only close if touching the backdrop itself (not the sheet)
           if (menuRef.current && menuRef.current.contains(e.target as Node)) return;

@@ -28,22 +28,27 @@ const LinkCard: React.FC<LinkCardProps> = ({
   const cooldownUntil = useRef<number>(0);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (isBatchEditMode || e.touches.length !== 1) return;
+
+    const touch = e.touches[0];
+    const clientX = touch.clientX;
+    const clientY = touch.clientY;
+
     longPressTriggered.current = false;
     longPressTimer.current = setTimeout(() => {
       longPressTriggered.current = true;
-      // Set a cooldown so that the next click within 400ms is suppressed
-      cooldownUntil.current = Date.now() + 400;
+      // Set a cooldown so that the next click is suppressed
+      cooldownUntil.current = Date.now() + 700;
       // Synthesize a mouse event at the touch position for the context menu
-      const touch = e.touches[0];
       const syntheticEvent = {
         preventDefault: () => { },
         stopPropagation: () => { },
-        clientX: touch.clientX,
-        clientY: touch.clientY,
+        clientX,
+        clientY,
       } as React.MouseEvent;
       onContextMenu(syntheticEvent, link);
     }, 500);
-  }, [link, onContextMenu]);
+  }, [isBatchEditMode, link, onContextMenu]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (longPressTimer.current) {
@@ -53,6 +58,7 @@ const LinkCard: React.FC<LinkCardProps> = ({
     // If a long press was triggered, prevent the subsequent click/navigation
     if (longPressTriggered.current) {
       e.preventDefault();
+      e.stopPropagation();
     }
   }, []);
 
@@ -61,6 +67,14 @@ const LinkCard: React.FC<LinkCardProps> = ({
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
+  }, []);
+
+  const handleTouchCancel = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    longPressTriggered.current = false;
   }, []);
 
   const handleClick = useCallback((e: React.MouseEvent) => {
@@ -136,6 +150,7 @@ const LinkCard: React.FC<LinkCardProps> = ({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onTouchMove={handleTouchMove}
+      onTouchCancel={handleTouchCancel}
     >
       {/* Pinned indicator */}
       {link.pinned && (
