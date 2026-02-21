@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
 import { Search, Plus, Settings, Upload, ArrowRight, Lock, Menu, X, Trash2, FolderInput, CheckSquare, Bot, Loader2 } from 'lucide-react';
-import { LinkItem, Category, DEFAULT_CATEGORIES, SearchMode, SearchConfig, PasswordExpiryConfig, AiSortConfig } from './types';
+import { LinkItem, Category, DEFAULT_CATEGORIES, SearchConfig, PasswordExpiryConfig, AiSortConfig } from './types';
 import { createSearchSources, STORAGE_KEYS } from './constants';
 import Icon from './components/Icon';
 import AuthModal from './components/AuthModal';
@@ -50,7 +50,7 @@ function App() {
   // --- Custom Hooks ---
   const appData = useAppData();
   const {
-    links, categories, syncStatus, webDavConfig, passwordExpiryConfig, siteConfig, aiSortConfig,
+    links, categories, webDavConfig, passwordExpiryConfig, siteConfig, aiSortConfig,
     setLinks, setCategories, setAppDataVersion, setPasswordExpiryConfig, setSiteConfig, setAiSortConfig,
     loadFromLocal, syncToCloud, loadLinkIcons,
     handleSaveWebDavConfig, handleSaveAiSortConfig,
@@ -287,17 +287,6 @@ function App() {
     }
   }, [authToken, selectedLinks, links, categories, updateData]);
 
-  const handleBatchMove = useCallback((targetCategoryId: string) => {
-    if (!authToken) { setIsAuthOpen(true); return; }
-    if (selectedLinks.size === 0) { alert('请先选择要移动的链接'); return; }
-    updateData(
-      links.map(link => selectedLinks.has(link.id) ? { ...link, categoryId: targetCategoryId } : link),
-      categories,
-    );
-    setSelectedLinks(new Set());
-    setIsBatchEditMode(false);
-  }, [authToken, selectedLinks, links, categories, updateData]);
-
   // --- Auth Actions ---
 
   const handleLogin = useCallback(async (password: string): Promise<boolean> => {
@@ -337,15 +326,14 @@ function App() {
         const res = await fetch('/api/storage', { headers: { 'x-auth-password': password } });
         if (res.ok) {
           const data = await res.json();
-          if (data.links?.length > 0) {
+          if (Array.isArray(data.links)) {
+            const nextCategories = Array.isArray(data.categories) && data.categories.length > 0
+              ? data.categories
+              : DEFAULT_CATEGORIES;
             setLinks(data.links);
-            setCategories(data.categories || DEFAULT_CATEGORIES);
-            localStorage.setItem(STORAGE_KEYS.LOCAL_DATA, JSON.stringify(data));
+            setCategories(nextCategories);
+            localStorage.setItem(STORAGE_KEYS.LOCAL_DATA, JSON.stringify({ links: data.links, categories: nextCategories }));
             loadLinkIcons(data.links, password);
-          } else {
-            localStorage.setItem(STORAGE_KEYS.LOCAL_DATA, JSON.stringify({ links, categories }));
-            syncToCloud(links, categories, password);
-            loadLinkIcons(links, password);
           }
         }
       } catch (e) {
@@ -359,12 +347,6 @@ function App() {
       return false;
     }
   }, [links, categories, setLinks, setCategories, loadLinkIcons, syncToCloud, loadFromLocal, setPasswordExpiryConfig]);
-
-  const handleLogout = useCallback(() => {
-    setAuthToken('');
-    localStorage.removeItem(AUTH_KEY);
-    loadFromLocal();
-  }, [loadFromLocal]);
 
   // 分类操作密码验证
   const handleCategoryActionAuth = useCallback(async (password: string): Promise<boolean> => {
@@ -625,6 +607,7 @@ function App() {
               <BackupModal
                 isOpen={isBackupModalOpen}
                 onClose={() => setIsBackupModalOpen(false)}
+                authToken={authToken}
                 links={links}
                 categories={categories}
                 onRestore={handleRestoreBackup}

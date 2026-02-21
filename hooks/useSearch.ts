@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef, Dispatch, SetStateAction } from 'react';
 import { ExternalSearchSource, SearchMode, SearchConfig } from '../types';
-import { createSearchSources } from '../constants';
 
 // Debounce hook for search input
 function useDebouncedValue<T>(value: T, delayMs: number): T {
@@ -37,7 +36,6 @@ interface UseSearchReturn {
     authToken: string,
     selectedSource?: ExternalSearchSource | null,
   ) => Promise<void>;
-  handleSearchModeChange: (mode: SearchMode, authToken: string) => void;
   handleSearchSourceSelect: (source: ExternalSearchSource, authToken: string) => Promise<void>;
   setSearchMode: (mode: SearchMode) => void;
   setExternalSearchSources: (sources: ExternalSearchSource[]) => void;
@@ -111,16 +109,6 @@ export function useSearch(): UseSearchReturn {
     }
   }, []);
 
-  const handleSearchModeChange = useCallback((mode: SearchMode, authToken: string) => {
-    setSearchMode(mode);
-    if (mode === 'external' && externalSearchSources.length === 0) {
-      const defaultSources = createSearchSources();
-      handleSaveSearchConfig(defaultSources, mode, authToken);
-    } else {
-      handleSaveSearchConfig(externalSearchSources, mode, authToken);
-    }
-  }, [externalSearchSources, handleSaveSearchConfig]);
-
   const handleSearchSourceSelect = useCallback(async (
     source: ExternalSearchSource,
     authToken: string,
@@ -148,7 +136,7 @@ export function useSearch(): UseSearchReturn {
     hoveredSearchSource, setHoveredSearchSource,
     isIconHovered, setIsIconHovered,
     isPopupHovered, setIsPopupHovered,
-    handleSaveSearchConfig, handleSearchModeChange, handleSearchSourceSelect,
+    handleSaveSearchConfig, handleSearchSourceSelect,
     setSearchMode, setExternalSearchSources,
   };
 }

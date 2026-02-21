@@ -58,9 +58,20 @@ export function normalizeDomain(rawUrl?: string): string | null {
 
 /** 通用排序比较器：按 order > createdAt 升序 */
 export function compareByOrder(a: LinkItem, b: LinkItem): number {
-  const aOrder = a.order !== undefined ? a.order : a.createdAt;
-  const bOrder = b.order !== undefined ? b.order : b.createdAt;
-  return aOrder - bOrder;
+  const aPinned = !!a.pinned;
+  const bPinned = !!b.pinned;
+  if (aPinned !== bPinned) return aPinned ? -1 : 1;
+
+  const aOrder = aPinned
+    ? (a.pinnedOrder !== undefined ? a.pinnedOrder : a.createdAt)
+    : (a.order !== undefined ? a.order : a.createdAt);
+  const bOrder = bPinned
+    ? (b.pinnedOrder !== undefined ? b.pinnedOrder : b.createdAt)
+    : (b.order !== undefined ? b.order : b.createdAt);
+
+  if (aOrder !== bOrder) return aOrder - bOrder;
+  if (a.createdAt !== b.createdAt) return a.createdAt - b.createdAt;
+  return a.id.localeCompare(b.id);
 }
 
 export type SyncStatus = 'idle' | 'saving' | 'saved' | 'error';

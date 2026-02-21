@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Cloud, Download, Upload, CheckCircle2, AlertCircle, RefreshCw, Save } from 'lucide-react';
+import { X, Cloud, Download, Upload, CheckCircle2, AlertCircle, Save } from 'lucide-react';
 import { Category, LinkItem, WebDavConfig, SearchConfig } from '../types';
 import { checkWebDavConnection, uploadBackup, downloadBackup } from '../services/webDavService';
 import { generateBookmarkHtml, downloadHtmlFile } from '../services/exportService';
@@ -7,6 +7,7 @@ import { generateBookmarkHtml, downloadHtmlFile } from '../services/exportServic
 interface BackupModalProps {
     isOpen: boolean;
     onClose: () => void;
+    authToken?: string;
     links: LinkItem[];
     categories: Category[];
     onRestore: (links: LinkItem[], categories: Category[]) => void;
@@ -17,7 +18,7 @@ interface BackupModalProps {
 }
 
 const BackupModal: React.FC<BackupModalProps> = ({
-    isOpen, onClose, links, categories, onRestore, webDavConfig, onSaveWebDavConfig, searchConfig, onRestoreSearchConfig
+    isOpen, onClose, authToken, links, categories, onRestore, webDavConfig, onSaveWebDavConfig, searchConfig, onRestoreSearchConfig
 }) => {
     const [config, setConfig] = useState<WebDavConfig>(webDavConfig);
     const [isTesting, setIsTesting] = useState(false);
@@ -36,7 +37,7 @@ const BackupModal: React.FC<BackupModalProps> = ({
     const handleTestConnection = async () => {
         setIsTesting(true);
         setTestResult(null);
-        const success = await checkWebDavConnection(config);
+        const success = await checkWebDavConnection(config, authToken);
         setTestResult(success ? 'success' : 'fail');
         setIsTesting(false);
     };
@@ -52,7 +53,7 @@ const BackupModal: React.FC<BackupModalProps> = ({
     const handleBackupToCloud = async () => {
         setSyncStatus('uploading');
         setStatusMsg('正在上传...');
-        const success = await uploadBackup(config, { links, categories, searchConfig });
+        const success = await uploadBackup(config, { links, categories, searchConfig }, authToken);
         if (success) {
             setSyncStatus('success');
             setStatusMsg('备份成功！');
@@ -67,7 +68,7 @@ const BackupModal: React.FC<BackupModalProps> = ({
 
         setSyncStatus('downloading');
         setStatusMsg('正在下载...');
-        const data = await downloadBackup(config);
+        const data = await downloadBackup(config, authToken);
 
         if (data) {
             onRestore(data.links, data.categories);
