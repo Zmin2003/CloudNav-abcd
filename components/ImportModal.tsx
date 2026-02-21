@@ -23,6 +23,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
     const [step, setStep] = useState<'upload' | 'preview'>('upload');
     const [file, setFile] = useState<File | null>(null);
     const [analyzing, setAnalyzing] = useState(false);
+    const [isImporting, setIsImporting] = useState(false);
 
     // Analysis Results
     const [newLinksCount, setNewLinksCount] = useState(0);
@@ -73,9 +74,68 @@ const ImportModal: React.FC<ImportModalProps> = ({
             throw new Error('Too many categories in backup file (max 500)');
         }
 
+        const normalizeUrl = (raw: unknown): string | null => {
+            if (typeof raw !== 'string') return null;
+            const trimmed = raw.trim();
+            if (!trimmed) return null;
+            const normalized = trimmed.startsWith('http://') || trimmed.startsWith('https://')
+                ? trimmed
+                : `https://${trimmed}`;
+            try {
+                const parsed = new URL(normalized);
+                if (!['http:', 'https:'].includes(parsed.protocol)) return null;
+                return normalized.slice(0, 2048);
+            } catch {
+                return null;
+            }
+        };
+
+        const normalizedCategories: Category[] = data.categories
+            .map((cat: any, index: number) => {
+                if (!cat || typeof cat !== 'object') return null;
+                const name = typeof cat.name === 'string' ? cat.name.trim().slice(0, 200) : '';
+                if (!name) return null;
+                const id = typeof cat.id === 'string' && cat.id.trim()
+                    ? cat.id.trim().slice(0, 100)
+                    : `import-cat-${index}-${Date.now()}`;
+                const icon = typeof cat.icon === 'string' && cat.icon.trim()
+                    ? cat.icon.trim().slice(0, 100)
+                    : 'Folder';
+                return { id, name, icon } as Category;
+            })
+            .filter((cat: Category | null): cat is Category => !!cat);
+
+        const categoryIdSet = new Set(normalizedCategories.map(c => c.id));
+        const normalizedLinks: LinkItem[] = data.links
+            .map((link: any, index: number) => {
+                if (!link || typeof link !== 'object') return null;
+                const title = typeof link.title === 'string' ? link.title.trim().slice(0, 500) : '';
+                const url = normalizeUrl(link.url);
+                if (!title || !url) return null;
+                const categoryId = typeof link.categoryId === 'string' && categoryIdSet.has(link.categoryId)
+                    ? link.categoryId
+                    : 'common';
+
+                return {
+                    id: typeof link.id === 'string' && link.id.trim()
+                        ? link.id.trim().slice(0, 100)
+                        : `import-link-${index}-${Date.now()}`,
+                    title,
+                    url,
+                    categoryId,
+                    createdAt: typeof link.createdAt === 'number' ? link.createdAt : Date.now(),
+                    description: typeof link.description === 'string' ? link.description.slice(0, 1000) : '',
+                    icon: typeof link.icon === 'string' ? link.icon.slice(0, 2048) : undefined,
+                    pinned: typeof link.pinned === 'boolean' ? link.pinned : false,
+                    order: typeof link.order === 'number' ? link.order : undefined,
+                    pinnedOrder: typeof link.pinnedOrder === 'number' ? link.pinnedOrder : undefined,
+                } as LinkItem;
+            })
+            .filter((link: LinkItem | null): link is LinkItem => !!link);
+
         return {
-            links: data.links,
-            categories: data.categories,
+            links: normalizedLinks,
+            categories: normalizedCategories,
             searchConfig: data.searchConfig
         };
     };
@@ -92,6 +152,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
         setDuplicateCount(0);
         setNewCategoriesCount(0);
         setImportType('html');
+        setIsImporting(false);
     };
 
     const handleClose = () => {
@@ -136,7 +197,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
             const uniqueNewCategories = result.categories.filter(c => !existingCategoryNames.has(c.name));
 
             setParsedLinks(uniqueNewLinks);
-            setParsedCategories(uniqueNewCategories);
+            setParsedCategories(result.categories);
             setParsedSearchConfig(result.searchConfig || null);
             setNewLinksCount(uniqueNewLinks.length);
             setDuplicateCount(duplicates);
@@ -151,10 +212,14 @@ const ImportModal: React.FC<ImportModalProps> = ({
             console.error(error);
         } finally {
             setAnalyzing(false);
+            e.target.value = '';
         }
     };
 
     const executeImport = () => {
+        if (isImporting) return;
+        setIsImporting(true);
+
         let finalLinks = [...parsedLinks];
         let finalCategories: Category[] = [];
 
@@ -204,14 +269,18 @@ const ImportModal: React.FC<ImportModalProps> = ({
             finalCategories = categoriesToAdd;
         }
 
-        onImport(finalLinks, finalCategories);
+        try {
+            onImport(finalLinks, finalCategories);
 
-        // Import search config if available
-        if (parsedSearchConfig && onImportSearchConfig) {
-            onImportSearchConfig(parsedSearchConfig);
+            // Import search config if available
+            if (parsedSearchConfig && onImportSearchConfig) {
+                onImportSearchConfig(parsedSearchConfig);
+            }
+
+            handleClose();
+        } finally {
+            setIsImporting(false);
         }
-
-        handleClose();
     };
 
     return (
@@ -366,7 +435,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
                             <button onClick={resetState} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors">重新选择</button>
                             <button
                                 onClick={executeImport}
-                                disabled={newLinksCount === 0}
+                                disabled={newLinksCount === 0 || isImporting || analyzing}
                                 className="px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center gap-2 font-medium"
                             >
                                 <Check size={16} /> 确认导入 ({newLinksCount})
