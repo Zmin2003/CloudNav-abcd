@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Cloud, Download, Upload, CheckCircle2, AlertCircle, Save } from 'lucide-react';
 import { Category, LinkItem, WebDavConfig, SearchConfig } from '../types';
 import { checkWebDavConnection, uploadBackup, downloadBackup } from '../services/webDavService';
@@ -25,6 +25,9 @@ const BackupModal: React.FC<BackupModalProps> = ({
     const [testResult, setTestResult] = useState<'success' | 'fail' | null>(null);
     const [syncStatus, setSyncStatus] = useState<'idle' | 'uploading' | 'downloading' | 'success' | 'error'>('idle');
     const [statusMsg, setStatusMsg] = useState('');
+    const actionSeqRef = useRef(0);
+    const isSyncing = syncStatus === 'uploading' || syncStatus === 'downloading';
+    const isBusy = isTesting || isSyncing;
 
     useEffect(() => {
         if (isOpen) {
@@ -32,28 +35,41 @@ const BackupModal: React.FC<BackupModalProps> = ({
             setTestResult(null);
             setSyncStatus('idle');
         }
+        actionSeqRef.current += 1;
     }, [isOpen, webDavConfig]);
 
+    const isConfigValid = () => {
+        if (!config.enabled) return true;
+        return Boolean(config.url.trim() && config.username.trim() && config.password.trim());
+    };
+
     const handleTestConnection = async () => {
+        if (isBusy || !config.enabled || !isConfigValid()) return;
+        const actionSeq = ++actionSeqRef.current;
         setIsTesting(true);
         setTestResult(null);
         const success = await checkWebDavConnection(config, authToken);
+        if (actionSeq !== actionSeqRef.current) return;
         setTestResult(success ? 'success' : 'fail');
         setIsTesting(false);
     };
 
     const handleSaveConfig = () => {
+        if (isSyncing) return;
         onSaveWebDavConfig(config);
         // Automatically test upon save if enabled
-        if (config.enabled) {
+        if (config.enabled && isConfigValid()) {
             handleTestConnection();
         }
     };
 
     const handleBackupToCloud = async () => {
+        if (isBusy || !config.enabled || !isConfigValid()) return;
+        const actionSeq = ++actionSeqRef.current;
         setSyncStatus('uploading');
         setStatusMsg('正在上传...');
         const success = await uploadBackup(config, { links, categories, searchConfig }, authToken);
+        if (actionSeq !== actionSeqRef.current) return;
         if (success) {
             setSyncStatus('success');
             setStatusMsg('备份成功！');
@@ -64,11 +80,14 @@ const BackupModal: React.FC<BackupModalProps> = ({
     };
 
     const handleRestoreFromCloud = async () => {
+        if (isBusy || !config.enabled || !isConfigValid()) return;
         if (!confirm("确定要从 WebDAV 恢复吗？这将覆盖当前的本地数据。")) return;
 
+        const actionSeq = ++actionSeqRef.current;
         setSyncStatus('downloading');
         setStatusMsg('正在下载...');
         const data = await downloadBackup(config, authToken);
+        if (actionSeq !== actionSeqRef.current) return;
 
         if (data) {
             onRestore(data.links, data.categories);
@@ -173,13 +192,14 @@ const BackupModal: React.FC<BackupModalProps> = ({
                             <div className="flex items-center gap-3 pt-2">
                                 <button
                                     onClick={handleTestConnection}
-                                    disabled={isTesting}
+                                    disabled={isTesting || isSyncing || !config.enabled || !isConfigValid()}
                                     className="px-3 py-1.5 text-xs font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md transition-colors"
                                 >
                                     {isTesting ? '连接中...' : '测试连接'}
                                 </button>
                                 <button
                                     onClick={handleSaveConfig}
+                                    disabled={isSyncing}
                                     className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 rounded-md transition-colors flex items-center gap-1"
                                 >
                                     <Save size={12} /> 保存配置
@@ -198,7 +218,7 @@ const BackupModal: React.FC<BackupModalProps> = ({
                         <div className="grid grid-cols-2 gap-4">
                             <button
                                 onClick={handleBackupToCloud}
-                                disabled={!config.enabled}
+                                disabled={!config.enabled || isBusy || !isConfigValid()}
                                 className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
                             >
                                 <Upload className="w-8 h-8 text-blue-500 mb-2 group-hover:-translate-y-1 transition-transform" />
@@ -208,7 +228,7 @@ const BackupModal: React.FC<BackupModalProps> = ({
 
                             <button
                                 onClick={handleRestoreFromCloud}
-                                disabled={!config.enabled}
+                                disabled={!config.enabled || isBusy || !isConfigValid()}
                                 className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
                             >
                                 <Download className="w-8 h-8 text-purple-500 mb-2 group-hover:-translate-y-1 transition-transform" />

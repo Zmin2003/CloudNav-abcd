@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, ArrowUp, ArrowDown, Trash2, Edit2, Plus, Check, Lock, Unlock, Palette } from 'lucide-react';
 import { Category } from '../types';
 import Icon from './Icon';
@@ -41,6 +41,35 @@ const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({
     categoryId: string;
     categoryName: string;
   } | null>(null);
+
+  useEffect(() => {
+    if (isOpen) return;
+    setEditingId(null);
+    setEditName('');
+    setEditPassword('');
+    setEditIcon('');
+    setNewCatName('');
+    setNewCatPassword('');
+    setNewCatIcon('Folder');
+    setIsIconSelectorOpen(false);
+    setIconSelectorTarget(null);
+    setIsAuthModalOpen(false);
+    setPendingAction(null);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (editingId && !categories.some((c) => c.id === editingId)) {
+      setEditingId(null);
+      setEditName('');
+      setEditPassword('');
+      setEditIcon('');
+    }
+
+    if (pendingAction && !categories.some((c) => c.id === pendingAction.categoryId)) {
+      setIsAuthModalOpen(false);
+      setPendingAction(null);
+    }
+  }, [categories, editingId, pendingAction]);
 
   if (!isOpen) return null;
 
@@ -124,6 +153,7 @@ const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({
     }
 
     // 清除待处理的操作
+    setIsAuthModalOpen(false);
     setPendingAction(null);
   };
 

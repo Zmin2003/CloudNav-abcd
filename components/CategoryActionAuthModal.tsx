@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X, Lock, AlertCircle } from 'lucide-react';
 
 interface CategoryActionAuthModalProps {
@@ -21,37 +21,60 @@ const CategoryActionAuthModal: React.FC<CategoryActionAuthModalProps> = ({
   const [password, setPassword] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState('');
+  const verifySeqRef = useRef(0);
+
+  useEffect(() => {
+    verifySeqRef.current += 1;
+    if (!isOpen) {
+      setPassword('');
+      setError('');
+      setIsVerifying(false);
+      return;
+    }
+
+    setPassword('');
+    setError('');
+  }, [isOpen, actionType, categoryName]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isVerifying) return;
     if (!password.trim()) {
       setError('请输入密码');
       return;
     }
 
+    const verifySeq = ++verifySeqRef.current;
     setIsVerifying(true);
     setError('');
     
     try {
       const success = await onVerify(password);
+      if (verifySeq !== verifySeqRef.current) return;
       if (success) {
         setPassword('');
+        setIsVerifying(false);
         onVerified();
+        onClose();
       } else {
         setError('密码错误，请重试');
+        setIsVerifying(false);
       }
     } catch (err) {
+      if (verifySeq !== verifySeqRef.current) return;
       setError('验证失败，请重试');
-    } finally {
       setIsVerifying(false);
     }
   };
 
   const handleClose = () => {
+    if (isVerifying) return;
+    verifySeqRef.current += 1;
     setPassword('');
     setError('');
+    setIsVerifying(false);
     onClose();
   };
 

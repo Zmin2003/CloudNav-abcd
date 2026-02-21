@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { X, Download } from 'lucide-react';
 
 interface QRCodeModalProps {
@@ -16,7 +16,18 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  const generateQRCode = () => {
+  const suppressGhostClick = useCallback(() => {
+    const blockClick = (event: MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    document.addEventListener('click', blockClick, true);
+    window.setTimeout(() => {
+      document.removeEventListener('click', blockClick, true);
+    }, 450);
+  }, []);
+
+  const qrCodeSrc = useMemo(() => {
     // 验证 URL 安全性
     try {
       const parsed = new URL(url);
@@ -29,18 +40,45 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
     // 使用第三方QR码生成服务
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
     return qrCodeUrl;
-  };
+  }, [url]);
 
   const downloadQRCode = () => {
+    if (!qrCodeSrc) return;
     const link = document.createElement('a');
-    link.href = generateQRCode();
+    link.href = qrCodeSrc;
     link.download = `${title.replace(/[^a-zA-Z0-9]/g, '_')}_qrcode.png`;
     link.click();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-xl shadow-xl sm:max-w-sm w-full sm:mx-4 p-6 relative safe-area-bottom">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target !== e.currentTarget) return;
+        e.preventDefault();
+        e.stopPropagation();
+        suppressGhostClick();
+        onClose();
+      }}
+      onTouchStart={(e) => {
+        if (e.target !== e.currentTarget) return;
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onTouchEnd={(e) => {
+        if (e.target !== e.currentTarget) return;
+        e.preventDefault();
+        e.stopPropagation();
+        suppressGhostClick();
+        onClose();
+      }}
+    >
+      <div
+        className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-xl shadow-xl sm:max-w-sm w-full sm:mx-4 p-6 relative safe-area-bottom"
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
+      >
         {/* 关闭按钮 */}
         <button
           onClick={onClose}
@@ -67,7 +105,7 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
         {/* QR码 */}
         <div className="flex justify-center mb-4">
           <img
-            src={generateQRCode()}
+            src={qrCodeSrc}
             alt={`${title}的二维码`}
             className="w-48 h-48 border-4 border-white dark:border-slate-700 rounded-lg"
           />
@@ -77,6 +115,7 @@ const QRCodeModal: React.FC<QRCodeModalProps> = ({
         <div className="flex gap-2">
           <button
             onClick={downloadQRCode}
+            disabled={!qrCodeSrc}
             className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
             <Download size={16} />
