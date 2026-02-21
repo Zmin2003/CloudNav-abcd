@@ -18,12 +18,6 @@ export interface Category {
   password?: string; // Optional password for category protection
 }
 
-export interface AppState {
-  links: LinkItem[];
-  categories: Category[];
-  darkMode: boolean;
-}
-
 export interface WebDavConfig {
   url: string;
   username: string;
@@ -40,11 +34,6 @@ export type PasswordExpiryUnit = 'day' | 'week' | 'month' | 'year' | 'permanent'
 export interface PasswordExpiryConfig {
   value: number; // 数值
   unit: PasswordExpiryUnit; // 单位
-}
-
-// 网站配置
-export interface WebsiteConfig {
-  passwordExpiry: PasswordExpiryConfig;
 }
 
 // 站点自定义配置
