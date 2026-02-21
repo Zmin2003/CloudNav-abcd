@@ -46,6 +46,13 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        if ('preventDefault' in event) {
+          event.preventDefault();
+        }
+        if ('stopPropagation' in event) {
+          event.stopPropagation();
+        }
+        suppressGhostClick();
         onClose();
       }
     };
@@ -57,17 +64,19 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('mousedown', handleClickOutside, true);
+      document.addEventListener('touchstart', handleClickOutside, true);
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside, true);
+      document.removeEventListener('touchstart', handleClickOutside, true);
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = '';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, suppressGhostClick]);
 
   if (!isOpen) return null;
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Lock, ArrowRight, Loader2 } from 'lucide-react';
 
 interface AuthModalProps {
@@ -36,6 +36,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onLogin }) => {
         return prev - 1;
       });
     }, 1000);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (lockoutTimer.current) {
+        clearInterval(lockoutTimer.current);
+        lockoutTimer.current = null;
+      }
+    };
   }, []);
 
   if (!isOpen) return null;

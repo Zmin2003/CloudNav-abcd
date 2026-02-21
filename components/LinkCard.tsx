@@ -91,22 +91,25 @@ const LinkCard: React.FC<LinkCardProps> = ({
 
   // Also guard the <a> tag's own click to prevent navigation after long press
   const handleLinkClick = useCallback((e: React.MouseEvent) => {
-    if (longPressTriggered.current || Date.now() < cooldownUntil.current) {
+    if (!safeUrl || longPressTriggered.current || Date.now() < cooldownUntil.current) {
       e.preventDefault();
       e.stopPropagation();
     }
-  }, []);
+  }, [link.url]);
 
   // 安全校验 URL，防止 javascript: 协议等 XSS
   const safeUrl = (() => {
     try {
-      const parsed = new URL(link.url);
+      const normalized = link.url.startsWith('http://') || link.url.startsWith('https://')
+        ? link.url
+        : `https://${link.url}`;
+      const parsed = new URL(normalized);
       if (['http:', 'https:'].includes(parsed.protocol)) {
-        return link.url;
+        return normalized;
       }
-      return '#';
+      return '';
     } catch {
-      return '#';
+      return '';
     }
   })();
 
