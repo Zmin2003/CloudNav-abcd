@@ -127,7 +127,7 @@ const LinkCard: React.FC<LinkCardProps> = ({
   const content = (
     <div className="flex items-center gap-3 w-full">
       {/* Icon */}
-      <div className="text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-bold uppercase shrink-0 w-8 h-8 rounded-xl bg-white/40 dark:bg-slate-700/40 icon-hover-float">
+      <div className="glass-link-icon text-blue-600 dark:text-blue-300 flex items-center justify-center text-sm font-bold uppercase shrink-0 w-8 h-8 rounded-xl icon-hover-float">
         {iconElement}
       </div>
       {/* Title */}
@@ -144,9 +144,9 @@ const LinkCard: React.FC<LinkCardProps> = ({
     <div
       key={link.id}
       className={`group relative touch-none-select card-shimmer card-glow-ring flex items-center justify-between rounded-2xl shadow-sm p-3
-        bg-white/40 dark:bg-slate-800/50 backdrop-blur-md border border-white/60 dark:border-white/10 card-touch-optimized ${isSelected
-          ? 'bg-red-50/70 border-red-300 dark:bg-red-900/40 dark:border-red-700'
-          : 'border-white/40 dark:border-slate-600/50'
+        glass-link-card card-touch-optimized ${isSelected
+          ? 'glass-link-card-selected'
+          : ''
         } ${isBatchEditMode ? 'cursor-pointer' : ''}`}
       onClick={handleClick}
       onContextMenu={(e) => onContextMenu(e, link)}

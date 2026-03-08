@@ -290,7 +290,7 @@ const SakuraBackground: React.FC<SakuraProps> = ({ enabled = true }) => {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none"
-      style={{ zIndex: -1 }}
+      style={{ zIndex: 2, opacity: 0.95 }}
     />
   );
 };

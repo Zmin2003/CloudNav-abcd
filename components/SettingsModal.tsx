@@ -51,31 +51,31 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg overflow-hidden border border-slate-200 dark:border-slate-700 flex flex-col max-h-[90dvh] safe-area-bottom">
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4 ios-modal-backdrop">
+            <div className="ios-modal-panel rounded-t-2xl sm:rounded-3xl w-full sm:max-w-lg overflow-hidden flex flex-col max-h-[90dvh] safe-area-bottom">
 
-                <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700 shrink-0">
+                <div className="ios-modal-header flex justify-between items-center p-4 border-b border-white/30 dark:border-white/10 shrink-0">
                     <div className="flex gap-3 sm:gap-4 overflow-x-auto flex-nowrap">
                         <button
                             onClick={() => setActiveTab('website')}
-                            className={`text-sm font-semibold flex items-center gap-2 pb-1 transition-colors ${activeTab === 'website' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' : 'text-slate-500 dark:text-slate-400'}`}
+                            className={`ios-tab-btn text-sm font-semibold flex items-center gap-2 pb-1 transition-colors ${activeTab === 'website' ? 'ios-tab-btn-active dark:text-blue-300' : 'text-slate-500 dark:text-slate-400'}`}
                         >
                             <Globe size={18} /> 网站设置
                         </button>
                         <button
                             onClick={() => setActiveTab('settings')}
-                            className={`text-sm font-semibold flex items-center gap-2 pb-1 transition-colors ${activeTab === 'settings' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' : 'text-slate-500 dark:text-slate-400'}`}
+                            className={`ios-tab-btn text-sm font-semibold flex items-center gap-2 pb-1 transition-colors ${activeTab === 'settings' ? 'ios-tab-btn-active dark:text-blue-300' : 'text-slate-500 dark:text-slate-400'}`}
                         >
                             <Clock size={18} /> 密码设置
                         </button>
                         <button
                             onClick={() => setActiveTab('ai')}
-                            className={`text-sm font-semibold flex items-center gap-2 pb-1 transition-colors ${activeTab === 'ai' ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-500' : 'text-slate-500 dark:text-slate-400'}`}
+                            className={`ios-tab-btn text-sm font-semibold flex items-center gap-2 pb-1 transition-colors ${activeTab === 'ai' ? 'ios-tab-btn-active dark:text-blue-300' : 'text-slate-500 dark:text-slate-400'}`}
                         >
                             <Bot size={18} /> AI 排序
                         </button>
                     </div>
-                    <button onClick={onClose} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
+                    <button onClick={onClose} className="ios-close-btn p-1.5 rounded-full transition-colors">
                         <X className="w-5 h-5 dark:text-slate-400" />
                     </button>
                 </div>
@@ -98,7 +98,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             value={localSiteConfig.websiteTitle || ''}
                                             onChange={(e) => handleSiteConfigChange('websiteTitle', e.target.value)}
                                             placeholder="Zmin Nav"
-                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="ios-input p-2.5 dark:text-white"
                                         />
                                         <p className="text-xs text-slate-400 mt-1">浏览器标签页显示的名称</p>
                                     </div>
@@ -109,7 +109,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             value={localSiteConfig.navigationName || ''}
                                             onChange={(e) => handleSiteConfigChange('navigationName', e.target.value)}
                                             placeholder="Zmin Nav"
-                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="ios-input p-2.5 dark:text-white"
                                         />
                                         <p className="text-xs text-slate-400 mt-1">页面左上角显示的名称</p>
                                     </div>
@@ -120,7 +120,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             value={localSiteConfig.faviconUrl || ''}
                                             onChange={(e) => handleSiteConfigChange('faviconUrl', e.target.value)}
                                             placeholder="https://example.com/favicon.ico"
-                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="ios-input p-2.5 dark:text-white"
                                         />
                                         <p className="text-xs text-slate-400 mt-1">浏览器标签页显示的图标</p>
                                     </div>
@@ -137,7 +137,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                                 type="button"
                                                 onClick={() => setLocalSiteConfig(prev => ({ ...prev, sakuraEnabled: prev.sakuraEnabled !== false ? false : true }))}
                                                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                                                    localSiteConfig.sakuraEnabled !== false ? 'bg-pink-500' : 'bg-slate-300 dark:bg-slate-600'
+                                                    localSiteConfig.sakuraEnabled !== false ? 'ios-toggle-track-active' : 'ios-toggle-track'
                                                 }`}
                                             >
                                                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -168,7 +168,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             value={localAiSortConfig.apiUrl}
                                             onChange={(e) => handleAiConfigChange('apiUrl', e.target.value)}
                                             placeholder="https://api.openai.com/v1/chat/completions"
-                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm"
+                                            className="ios-input p-2.5 dark:text-white font-mono text-sm"
                                         />
                                         <p className="text-xs text-slate-400 mt-1">支持 OpenAI 兼容的 /v1/chat/completions 接口</p>
                                     </div>
@@ -179,7 +179,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             value={localAiSortConfig.apiKey}
                                             onChange={(e) => handleAiConfigChange('apiKey', e.target.value)}
                                             placeholder="sk-..."
-                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm"
+                                            className="ios-input p-2.5 dark:text-white font-mono text-sm"
                                         />
                                     </div>
                                     <div>
@@ -189,7 +189,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             value={localAiSortConfig.model}
                                             onChange={(e) => handleAiConfigChange('model', e.target.value)}
                                             placeholder="gpt-4o-mini"
-                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm"
+                                            className="ios-input p-2.5 dark:text-white font-mono text-sm"
                                         />
                                         <p className="text-xs text-slate-400 mt-1">如 gpt-4o-mini、deepseek-chat、gemini-2.0-flash 等</p>
                                     </div>
@@ -215,7 +215,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             min="1"
                                             value={localPasswordExpiryConfig.value}
                                             onChange={(e) => handlePasswordExpiryChange('value', parseInt(e.target.value) || 1)}
-                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="ios-input p-2.5 dark:text-white"
                                         />
                                     </div>
                                     <div>
@@ -223,7 +223,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                         <select
                                             value={localPasswordExpiryConfig.unit}
                                             onChange={(e) => handlePasswordExpiryChange('unit', e.target.value)}
-                                            className="w-full p-2.5 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="ios-select p-2.5 dark:text-white"
                                         >
                                             <option value="day">天</option>
                                             <option value="week">周</option>
@@ -238,7 +238,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     )}
                 </div>
 
-                <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3 shrink-0">
+                <div className="ios-modal-footer p-4 border-t border-white/30 dark:border-white/10 flex justify-end gap-3 shrink-0">
                     <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg">取消</button>
                     <button onClick={handleSave} className="px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-lg flex items-center gap-2 font-medium">
                         <Save size={16} /> 保存设置

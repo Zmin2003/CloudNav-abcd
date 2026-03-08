@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
 import { Search, Plus, Settings, Upload, ArrowRight, Lock, Menu, X, Trash2, FolderInput, CheckSquare, Bot, Loader2 } from 'lucide-react';
 import { LinkItem, Category, DEFAULT_CATEGORIES, SearchConfig, PasswordExpiryConfig, AiSortConfig } from './types';
 import { createSearchSources, STORAGE_KEYS } from './constants';
@@ -96,6 +96,7 @@ function App() {
 
   // Mobile Menu State
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   // Batch Edit State
   const [isBatchEditMode, setIsBatchEditMode] = useState(false);
@@ -103,6 +104,8 @@ function App() {
 
   // AI Sort State
   const [isAiSorting, setIsAiSorting] = useState(false);
+  const searchSectionRef = useRef<HTMLDivElement | null>(null);
+  const searchResultsRef = useRef<HTMLElement | null>(null);
 
   // --- Wrapper: updateData with current authToken ---
   const updateData = useCallback((newLinks: LinkItem[], newCategories: Category[]) => {
@@ -546,6 +549,17 @@ function App() {
 
   // Memoize greeting to avoid recalc on every render
   const greeting = useMemo(() => getStatusGreeting(), []);
+  const hasSearchQuery = debouncedSearchQuery.trim().length > 0;
+  const isSearchPanelOpen = isSearchFocused || hasSearchQuery;
+  const searchPanelTitle = hasSearchQuery ? '搜索结果' : '全部链接';
+
+  useEffect(() => {
+    if (!isSearchPanelOpen) return;
+    const frame = window.requestAnimationFrame(() => {
+      searchResultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [isSearchPanelOpen]);
 
   // FIX: safe hostname extraction for search source icons (prevents crash from invalid URLs with {query})
   const activeSearchSource = hoveredSearchSource || selectedSearchSource;
@@ -554,9 +568,10 @@ function App() {
   // --- Render ---
 
   return (
-    <div className="flex h-dvh overflow-hidden text-slate-900 dark:text-slate-50 relative z-10 w-full">
+    <div className="app-shell relative w-full">
       {/* 樱花飘落背景 (Canvas sits at z-0 inside this z-10 container) */}
       <SakuraBackground enabled={siteConfig.sakuraEnabled !== false} />
+      <div className="flex h-dvh overflow-hidden text-slate-900 dark:text-slate-50 relative z-10 w-full">
       {/* 认证遮罩层 */}
       {requiresAuth && !authToken && (
         <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 flex items-center justify-center">
@@ -566,10 +581,10 @@ function App() {
                 <Lock className="w-8 h-8 text-blue-600 dark:text-blue-400" />
               </div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-2">
-                需要身份验证
+                ??????
               </h1>
               <p className="text-slate-600 dark:text-slate-400">
-                此导航页面设置了访问密码，请输入密码以继续访问
+                ??????????????????????
               </p>
             </div>
             <AuthModal isOpen={true} onLogin={handleLogin} />
@@ -577,7 +592,7 @@ function App() {
         </div>
       )}
 
-      {/* 主要内容 */}
+      {/* ???? */}
       {(!requiresAuth || authToken) && (
         <>
           <AuthModal isOpen={isAuthOpen} onLogin={handleLogin} />
@@ -644,12 +659,12 @@ function App() {
           </Suspense>
 
           {/* Main Content */}
-          <main className="flex-1 flex flex-col h-full bg-white/20 dark:bg-slate-900/30 overflow-y-auto relative w-full">
+          <main className="glass-app-bg app-main flex-1 flex flex-col h-full overflow-y-auto relative w-full">
 
             {/* Header */}
-            <header className="header-glow bg-white/60 dark:bg-slate-900/70 backdrop-blur-lg border-b border-white/40 dark:border-white/10 shadow-sm h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between sticky top-0 z-10 shrink-0 safe-area-top safe-area-x" style={{ transform: 'translateZ(0)' }}>
+            <header className="glass-header header-glow h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between sticky top-0 z-10 shrink-0 safe-area-top safe-area-x" style={{ transform: 'translateZ(0)' }}>
               <div className="flex items-center gap-4 sm:gap-6">
-                <span className="brand-glow text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+                <span className="brand-glow app-brand-text text-lg sm:text-xl font-bold">
                   {siteConfig.navigationName || 'Zmin Nav'}
                 </span>
               </div>
@@ -752,17 +767,19 @@ function App() {
             <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 lg:p-8 space-y-6 sm:space-y-8 scroll-smooth">
 
               {/* Hero Search Section */}
-              <section className="flex flex-col items-center justify-center pt-[15vh] pb-4 sm:py-12 md:py-20 fade-up">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 dark:text-slate-100 mb-4 sm:mb-8 bg-gradient-to-r from-blue-600 via-purple-500 to-blue-600 bg-clip-text text-transparent gradient-shimmer drop-shadow-sm">
+              <section className={`flex flex-col items-center justify-center fade-up ${
+                isSearchPanelOpen ? 'pt-6 pb-3 sm:pt-8 sm:pb-4 md:pt-10 md:pb-6' : 'pt-[15vh] pb-4 sm:py-12 md:py-20'
+              }`}>
+                <h1 className="hero-title text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-8 gradient-shimmer drop-shadow-sm">
                   {greeting}
                 </h1>
 
                 {/* 搜索框 */}
-                <div className="relative w-full max-w-2xl mx-auto shadow-2xl shadow-blue-500/20 rounded-full group search-glow search-focus-ring transition-all duration-300 hover:shadow-blue-500/30 hover:-translate-y-1">
+                <div ref={searchSectionRef} className="ios-search-shell relative w-full max-w-2xl mx-auto shadow-2xl shadow-blue-500/20 rounded-full group search-glow search-focus-ring transition-all duration-300 hover:shadow-blue-500/30 hover:-translate-y-1">
                   {/* 搜索源选择弹出窗口 */}
                   {showSearchSourcePopup && (
                     <div
-                      className="absolute left-0 top-full mt-4 w-full bg-white/70 dark:bg-slate-800/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-3xl p-4 z-50 scale-in shadow-xl shadow-black/5"
+                      className="absolute left-0 top-full mt-4 w-full ios-popover rounded-3xl p-4 z-50 scale-in"
                       onMouseEnter={() => setIsPopupHovered(true)}
                       onMouseLeave={() => setIsPopupHovered(false)}
                     >
@@ -778,9 +795,9 @@ function App() {
                                 onClick={() => handleSearchSourceSelectWrapper(source)}
                                 onMouseEnter={() => setHoveredSearchSource(source)}
                                 onMouseLeave={() => setHoveredSearchSource(null)}
-                                className="flex flex-col items-center gap-2 p-3 rounded-2xl hover:bg-white/60 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 transition-all group/item hover:-translate-y-1 hover:shadow-md"
+                                className="ios-source-item flex flex-col items-center gap-2 p-3 rounded-2xl transition-all group/item hover:-translate-y-1"
                               >
-                                <div className="p-2 bg-white/80 dark:bg-slate-600/80 backdrop-blur-sm rounded-xl shadow-sm border border-slate-200 dark:border-slate-500 group-hover/item:scale-110 transition-transform">
+                                <div className="ios-source-icon p-2 rounded-xl group-hover/item:scale-110 transition-transform">
                                   {hostname ? (
                                     <img
                                       src={`https://www.faviconextractor.com/favicon/${hostname}?larger=true`}
@@ -794,7 +811,7 @@ function App() {
                                     <Search size={20} className="text-slate-400" />
                                   )}
                                 </div>
-                                <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate w-full text-center">{source.name}</span>
+                                <span className="text-xs font-semibold text-slate-700 dark:text-slate-100 truncate w-full text-center">{source.name}</span>
                               </button>
                             );
                           })}
@@ -804,7 +821,7 @@ function App() {
 
                   {/* 搜索图标/引擎图标 */}
                   <div
-                    className="absolute left-4 top-1/2 -translate-y-1/2 cursor-pointer p-1.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-colors"
+                    className="ios-search-trigger absolute left-4 top-1/2 -translate-y-1/2 cursor-pointer p-1.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-colors"
                     onClick={() => setShowSearchSourcePopup(!showSearchSourcePopup)}
                     onMouseEnter={() => setIsIconHovered(true)}
                     onMouseLeave={() => setIsIconHovered(false)}
@@ -820,7 +837,7 @@ function App() {
                         }}
                       />
                     ) : (
-                      <Search size={22} className="text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                      <Search size={22} className="text-slate-500 group-focus-within:text-blue-500 transition-colors" />
                     )}
                   </div>
 
@@ -829,6 +846,15 @@ function App() {
                     placeholder={selectedSearchSource ? `在 ${selectedSearchSource.name} 搜索...` : "输入搜索内容..."}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setIsSearchFocused(true)}
+                    onBlur={() => {
+                      window.requestAnimationFrame(() => {
+                        const activeElement = document.activeElement;
+                        if (!searchSectionRef.current?.contains(activeElement) && !searchQuery.trim()) {
+                          setIsSearchFocused(false);
+                        }
+                      });
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && selectedSearchSource) {
                         // 安全校验搜索 URL
@@ -839,9 +865,12 @@ function App() {
                             window.open(searchUrl, '_blank', 'noopener,noreferrer');
                           }
                         } catch { /* ignore invalid URL */ }
+                      } else if (e.key === 'Escape' && !searchQuery.trim()) {
+                        setIsSearchFocused(false);
+                        (e.target as HTMLInputElement).blur();
                       }
                     }}
-                    className="w-full pl-14 pr-14 py-4 rounded-full bg-white/50 dark:bg-slate-800/60 backdrop-blur-lg border-2 border-white/60 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)] text-base focus:border-blue-500 focus:bg-white/70 dark:focus:bg-slate-800/80 focus:ring-4 focus:ring-blue-500/20 dark:focus:border-blue-500 dark:text-white placeholder-slate-700/60 dark:placeholder-slate-300/60 outline-none transition-colors"
+                    className="ios-search-input w-full pl-14 pr-14 py-4 rounded-full text-base dark:text-white outline-none transition-colors"
                   />
 
                   {searchQuery.trim() && (
@@ -857,7 +886,7 @@ function App() {
                           } catch { /* ignore invalid URL */ }
                         }
                       }}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors shadow-sm"
+                      className="ios-search-submit absolute right-4 top-1/2 -translate-y-1/2 p-2 text-white rounded-full hover:bg-blue-600 transition-colors shadow-sm"
                     >
                       <ArrowRight size={16} />
                     </button>
@@ -866,31 +895,35 @@ function App() {
               </section>
 
               {/* 搜索结果 */}
-              {debouncedSearchQuery.trim() && displayedLinks.length > 0 ? (
-                <section>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Search className="text-blue-500" size={24} />
-                    <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">搜索结果</h2>
-                    <span className="text-sm text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{displayedLinks.length}</span>
-                  </div>
-                  <div className="grid gap-2.5 sm:gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10">
-                    {displayedLinks.map(link => (
-                      <LinkCard
-                        key={link.id}
-                        link={link}
-                        isBatchEditMode={isBatchEditMode}
-                        isSelected={selectedLinks.has(link.id)}
-                        onToggleSelection={toggleLinkSelection}
-                        onContextMenu={handleContextMenu}
-                      />
-                    ))}
-                  </div>
-                </section>
-              ) : debouncedSearchQuery.trim() && displayedLinks.length === 0 ? (
-                <section className="py-12 text-center">
-                  <Search className="mx-auto text-slate-300 dark:text-slate-600 mb-4" size={48} />
-                  <p className="text-slate-500 dark:text-slate-400">没有找到匹配的链接</p>
-                </section>
+              {isSearchPanelOpen ? (
+                <>
+                  {displayedLinks.length > 0 ? (
+                    <section ref={searchResultsRef} className="search-results-panel">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Search className="text-blue-500" size={24} />
+                        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">{searchPanelTitle}</h2>
+                        <span className="ios-count-badge text-sm px-2 py-0.5 rounded-full">{displayedLinks.length}</span>
+                      </div>
+                      <div className="grid gap-2.5 sm:gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10">
+                        {displayedLinks.map(link => (
+                          <LinkCard
+                            key={link.id}
+                            link={link}
+                            isBatchEditMode={isBatchEditMode}
+                            isSelected={selectedLinks.has(link.id)}
+                            onToggleSelection={toggleLinkSelection}
+                            onContextMenu={handleContextMenu}
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  ) : (
+                    <section ref={searchResultsRef} className="search-results-panel py-12 text-center">
+                      <Search className="mx-auto text-slate-300 dark:text-slate-600 mb-4" size={48} />
+                      <p className="text-slate-500 dark:text-slate-400">?????????</p>
+                    </section>
+                  )}
+                </>
               ) : (
                 <>
                   {/* 分类循环 */}
@@ -1018,6 +1051,7 @@ function App() {
           </Suspense>
         </>
       )}
+      </div>
     </div>
   );
 }

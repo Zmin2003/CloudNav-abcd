@@ -260,9 +260,9 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[90dvh] sm:max-h-[85dvh] overflow-y-auto border border-slate-200 dark:border-slate-700 safe-area-bottom">
-        <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 ios-modal-backdrop">
+      <div className="ios-modal-panel rounded-t-2xl sm:rounded-3xl w-full sm:max-w-md max-h-[90dvh] sm:max-h-[85dvh] overflow-y-auto safe-area-bottom">
+        <div className="ios-modal-header flex justify-between items-center p-4 border-b border-white/30 dark:border-white/10">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold dark:text-white">
               {initialData ? '编辑链接' : '添加新链接'}
@@ -270,9 +270,9 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
             <button
               type="button"
               onClick={() => setPinned(!pinned)}
-              className={`flex items-center gap-1 px-2 py-1 rounded-md border transition-all ${pinned
-                ? 'bg-blue-100 border-blue-200 text-blue-600 dark:bg-blue-900/40 dark:border-blue-800 dark:text-blue-300'
-                : 'bg-slate-50 border-slate-200 text-slate-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-400'
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all ${pinned
+                ? 'ios-chip-toggle ios-chip-toggle-active text-blue-600 dark:text-blue-300'
+                : 'ios-chip-toggle text-slate-600 dark:text-slate-300'
                 }`}
               title={pinned ? "取消置顶" : "置顶"}
             >
@@ -280,7 +280,7 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
               <span className="text-xs font-medium">置顶</span>
             </button>
             {!initialData && (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-md border bg-slate-50 border-slate-200 dark:bg-slate-700 dark:border-slate-600">
+              <div className="ios-secondary-chip flex items-center gap-1 px-2.5 py-1.5 rounded-xl border">
                 <input
                   type="checkbox"
                   id="batchMode"
@@ -297,7 +297,7 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
               <button
                 type="button"
                 onClick={handleDelete}
-                className="flex items-center gap-1 px-2 py-1 rounded-md border transition-all bg-red-50 border-red-200 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:border-red-800/30 dark:text-red-400"
+                className="ios-danger-chip flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all text-red-600 hover:bg-red-100/60 dark:text-red-300"
                 title="删除链接"
               >
                 <Trash2 size={14} />
@@ -305,7 +305,7 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
               </button>
             )}
           </div>
-          <button onClick={onClose} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
+          <button onClick={onClose} className="ios-close-btn p-1.5 rounded-full transition-colors">
             <X className="w-5 h-5 dark:text-slate-400" />
           </button>
         </div>
@@ -318,7 +318,7 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              className="ios-input p-2.5 dark:text-white transition-all"
               placeholder="网站名称"
             />
           </div>
@@ -330,7 +330,7 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
               required
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              className="ios-input p-2.5 dark:text-white transition-all"
               placeholder="example.com 或 https://..."
             />
           </div>
@@ -342,14 +342,14 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
                 type="url"
                 value={icon}
                 onChange={(e) => setIcon(e.target.value)}
-                className="flex-1 p-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                className="ios-input flex-1 p-2.5 dark:text-white transition-all"
                 placeholder="https://example.com/icon.png"
               />
               <button
                 type="button"
                 onClick={handleFetchIcon}
                 disabled={!url || isFetchingIcon}
-                className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center gap-1 transition-colors"
+                className="ios-primary-btn px-3 py-2 text-white rounded-xl disabled:opacity-50 flex items-center gap-1 transition-colors"
               >
                 {isFetchingIcon ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -380,7 +380,7 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              className="ios-select p-2.5 dark:text-white transition-all"
             >
               {categories.map(cat => (
                 <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -396,7 +396,7 @@ const LinkModal: React.FC<LinkModalProps> = ({ isOpen, onClose, onSave, onDelete
             )}
             <button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-lg shadow-blue-500/30"
+              className="ios-primary-wide-btn w-full text-white font-medium py-2.5 px-4 rounded-2xl transition-colors"
             >
               保存
             </button>
