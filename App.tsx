@@ -791,12 +791,12 @@ function App() {
             )}
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 lg:p-8 space-y-6 sm:space-y-8 scroll-smooth">
+            <div className="relative isolate flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 lg:p-8 space-y-6 sm:space-y-8 scroll-smooth">
 
               {/* Hero Search Section */}
-              <section className={`flex flex-col items-center justify-center fade-up ${
+              <section className={`relative flex flex-col items-center justify-center fade-up ${
                 isSearchPanelOpen ? 'pt-6 pb-3 sm:pt-8 sm:pb-4 md:pt-10 md:pb-6' : 'pt-[15vh] pb-4 sm:py-12 md:py-20'
-              }`}>
+              } ${showSearchSourcePopup ? 'z-[60]' : 'z-0'}`}>
                 <h1 className="hero-title text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-8 gradient-shimmer drop-shadow-sm">
                   {greeting}
                 </h1>
