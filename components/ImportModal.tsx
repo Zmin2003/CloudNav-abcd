@@ -374,9 +374,9 @@ const ImportModal: React.FC<ImportModalProps> = ({
                                     <div className="text-xl font-bold text-slate-600 dark:text-slate-400">{duplicateCount}</div>
                                     <div className="text-xs text-slate-500">重复跳过</div>
                                 </div>
-                                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center border border-purple-100 dark:border-purple-900/30">
-                                    <div className="text-xl font-bold text-purple-600 dark:text-purple-400">{importMode === 'original' ? newCategoriesCount : 0}</div>
-                                    <div className="text-xs text-purple-700 dark:text-purple-500">新增分类</div>
+                                <div className="p-3 bg-[#FEF7E0] dark:bg-[#FBBC05]/15 rounded-lg text-center border border-[#FDE293] dark:border-[#FBBC05]/20">
+                                    <div className="text-xl font-bold text-[#F9AB00] dark:text-[#FDD663]">{importMode === 'original' ? newCategoriesCount : 0}</div>
+                                    <div className="text-xs text-[#B06000] dark:text-[#FDD663]">新增分类</div>
                                 </div>
                             </div>
 

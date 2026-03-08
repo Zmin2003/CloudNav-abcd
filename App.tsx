@@ -604,8 +604,8 @@ function App() {
         <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 flex items-center justify-center">
           <div className="w-full max-w-md p-6">
             <div className="text-center mb-8">
-              <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-4">
-                <Lock className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              <div className="mx-auto w-16 h-16 bg-[#E8F0FE] dark:bg-[#4285F4]/20 rounded-full flex items-center justify-center mb-4">
+                <Lock className="w-8 h-8 text-[#1A73E8] dark:text-[#8AB4F8]" />
               </div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-2">
                 ??????
@@ -707,7 +707,7 @@ function App() {
                 </button>
                 <button
                   onClick={() => { if (!authToken) setIsAuthOpen(true); else { setEditingLink(undefined); setPrefillLink(undefined); setIsModalOpen(true); } }}
-                  className="btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 rounded-full transition-all shadow-md shadow-blue-500/20 hover:shadow-lg hover:-translate-y-0.5"
+                  className="btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-[#4285F4] to-[#34A853] hover:from-[#1A73E8] hover:to-[#2D8E4A] rounded-full transition-all shadow-md shadow-[#4285F4]/20 hover:shadow-lg hover:-translate-y-0.5"
                 >
                   <Plus size={14} /> 添加
                 </button>
@@ -726,7 +726,7 @@ function App() {
                 <button
                   onClick={handleAiSort}
                   disabled={isAiSorting}
-                  className="btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-full transition-all disabled:opacity-60 shadow-md shadow-pink-500/20 hover:shadow-lg hover:-translate-y-0.5"
+                  className="btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-[#EA4335] to-[#FBBC05] hover:from-[#D93025] hover:to-[#F9AB00] rounded-full transition-all disabled:opacity-60 shadow-md shadow-[#EA4335]/20 hover:shadow-lg hover:-translate-y-0.5"
                   title="AI 智能整理书签"
                 >
                   {isAiSorting ? <Loader2 size={14} className="animate-spin" /> : <Bot size={14} />} AI 整理
@@ -774,7 +774,7 @@ function App() {
                 <button
                   onClick={() => { toggleBatchEditMode(); setIsMobileMenuOpen(false); }}
                   className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg transition-all active:scale-95 ${isBatchEditMode
-                    ? 'bg-blue-200 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
+                    ? 'bg-[#D2E3FC] dark:bg-[#4285F4]/25 text-[#1A73E8] dark:text-[#8AB4F8]'
                     : 'text-slate-700 dark:text-slate-200 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm'
                     }`}
                 >
@@ -783,7 +783,7 @@ function App() {
                 <button
                   onClick={() => { handleAiSort(); setIsMobileMenuOpen(false); }}
                   disabled={isAiSorting}
-                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg active:scale-95 transition-all disabled:opacity-60 shadow-md shadow-pink-500/20"
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-white bg-gradient-to-r from-[#EA4335] to-[#FBBC05] rounded-lg active:scale-95 transition-all disabled:opacity-60 shadow-md shadow-[#EA4335]/20"
                 >
                   {isAiSorting ? <Loader2 size={16} className="animate-spin" /> : <Bot size={16} />} AI 整理
                 </button>
@@ -804,8 +804,8 @@ function App() {
                 {/* 搜索框 */}
                 <div
                   ref={searchSectionRef}
-                  className={`ios-search-shell relative isolate w-full max-w-2xl mx-auto rounded-full group search-glow search-focus-ring transition-all duration-300 hover:shadow-blue-500/30 hover:-translate-y-1 ${
-                    showSearchSourcePopup ? 'z-[70] shadow-2xl shadow-blue-500/25' : 'z-10 shadow-2xl shadow-blue-500/20'
+                  className={`ios-search-shell relative isolate w-full max-w-2xl mx-auto rounded-full group search-glow search-focus-ring transition-all duration-300 hover:shadow-[#4285F4]/30 hover:-translate-y-1 ${
+                    showSearchSourcePopup ? 'z-[70] shadow-2xl shadow-[#4285F4]/25' : 'z-10 shadow-2xl shadow-[#4285F4]/20'
                   }`}
                 >
                   {/* 搜索源选择弹出窗口 */}
@@ -871,7 +871,7 @@ function App() {
                         }}
                       />
                     ) : (
-                      <Search size={22} className="text-slate-500 group-focus-within:text-blue-500 transition-colors" />
+                      <Search size={22} className="text-slate-500 group-focus-within:text-[#4285F4] transition-colors" />
                     )}
                   </button>
 
@@ -920,7 +920,7 @@ function App() {
                           } catch { /* ignore invalid URL */ }
                         }
                       }}
-                      className="ios-search-submit absolute right-4 top-1/2 -translate-y-1/2 p-2 text-white rounded-full hover:bg-blue-600 transition-colors shadow-sm"
+                      className="ios-search-submit absolute right-4 top-1/2 -translate-y-1/2 p-2 text-white rounded-full hover:bg-[#1A73E8] transition-colors shadow-sm"
                     >
                       <ArrowRight size={16} />
                     </button>
@@ -934,7 +934,7 @@ function App() {
                   {displayedLinks.length > 0 ? (
                     <section ref={searchResultsRef} className="search-results-panel">
                       <div className="flex items-center gap-2 mb-4">
-                        <Search className="text-blue-500" size={24} />
+                        <Search className="text-[#4285F4]" size={24} />
                         <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">{searchPanelTitle}</h2>
                         <span className="ios-count-badge text-sm px-2 py-0.5 rounded-full">{displayedLinks.length}</span>
                       </div>
@@ -970,21 +970,21 @@ function App() {
                     return (
                       <section key={cat.id} id={`cat-${cat.id}`} className="fade-up" style={{ animationDelay: `${index * 60}ms` }}>
                         <div className="flex items-center gap-2 mb-4 cat-title-line">
-                          <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                          <div className="p-1.5 rounded-lg bg-[#E8F0FE] dark:bg-[#4285F4]/20 text-[#1A73E8] dark:text-[#8AB4F8]">
                             <Icon name={cat.icon} size={18} />
                           </div>
                           <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">{cat.name}</h2>
-                          {isLocked && <Lock size={14} className="text-amber-500" />}
+                          {isLocked && <Lock size={14} className="text-[#FBBC05]" />}
                           <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{catLinks.length}</span>
                         </div>
 
                         {isLocked ? (
                           <div className="locked-shimmer flex flex-col items-center justify-center py-8 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
-                            <Lock size={24} className="text-amber-500 mb-2" />
+                            <Lock size={24} className="text-[#FBBC05] mb-2" />
                             <p className="text-slate-500 text-sm mb-3">此分类已锁定</p>
                             <button
                               onClick={() => setCatAuthModalData(cat)}
-                              className="px-4 py-1.5 bg-amber-500 text-white text-xs font-medium rounded-full hover:bg-amber-600 transition-colors"
+                              className="px-4 py-1.5 bg-[#FBBC05] text-[#202124] text-xs font-medium rounded-full hover:bg-[#F9AB00] transition-colors"
                             >
                               输入密码解锁
                             </button>
@@ -1028,7 +1028,7 @@ function App() {
           {/* Mobile FAB: Add Link */}
           <button
             onClick={() => { if (!authToken) setIsAuthOpen(true); else { setEditingLink(undefined); setPrefillLink(undefined); setIsModalOpen(true); } }}
-            className="sm:hidden fixed right-4 bottom-4 z-30 w-14 h-14 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 active:scale-90 text-white rounded-full shadow-lg shadow-blue-500/30 flex items-center justify-center transition-all duration-200 safe-area-bottom fab-pulse"
+            className="sm:hidden fixed right-4 bottom-4 z-30 w-14 h-14 bg-[#4285F4] hover:bg-[#1A73E8] active:bg-[#174EA6] active:scale-90 text-white rounded-full shadow-lg shadow-[#4285F4]/30 flex items-center justify-center transition-all duration-200 safe-area-bottom fab-pulse"
             style={{ bottom: 'max(1rem, env(safe-area-inset-bottom))' }}
           >
             <Plus size={24} />
@@ -1039,7 +1039,7 @@ function App() {
             <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 px-4 py-3 safe-area-bottom safe-area-x slide-up-sheet">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm text-slate-600 dark:text-slate-400">
-                  已选 <b className="text-blue-600 dark:text-blue-400">{selectedLinks.size}</b> 项
+                  已选 <b className="text-[#1A73E8] dark:text-[#8AB4F8]">{selectedLinks.size}</b> 项
                 </span>
                 <div className="flex items-center gap-2">
                   <button onClick={handleSelectAll} className="px-3 py-1.5 text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg">
@@ -1048,7 +1048,7 @@ function App() {
                   <button
                     onClick={handleBatchDelete}
                     disabled={selectedLinks.size === 0}
-                    className="px-3 py-1.5 text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg disabled:opacity-40"
+                    className="px-3 py-1.5 text-xs font-medium bg-[#FCE8E6] dark:bg-[#EA4335]/20 text-[#EA4335] dark:text-[#F28B82] rounded-lg disabled:opacity-40"
                   >
                     <Trash2 size={14} className="inline mr-1" />删除
                   </button>

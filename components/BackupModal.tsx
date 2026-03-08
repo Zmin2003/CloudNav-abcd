@@ -231,7 +231,7 @@ const BackupModal: React.FC<BackupModalProps> = ({
                                 disabled={!config.enabled || isBusy || !isConfigValid()}
                                 className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
                             >
-                                <Download className="w-8 h-8 text-purple-500 mb-2 group-hover:-translate-y-1 transition-transform" />
+                                <Download className="w-8 h-8 text-[#34A853] mb-2 group-hover:-translate-y-1 transition-transform" />
                                 <span className="text-sm font-medium dark:text-white">从 WebDAV 恢复</span>
                                 <span className="text-xs text-slate-500 mt-1">覆盖本地数据</span>
                             </button>
