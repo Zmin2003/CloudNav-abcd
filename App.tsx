@@ -608,10 +608,10 @@ function App() {
                 <Lock className="w-8 h-8 text-[#1A73E8] dark:text-[#8AB4F8]" />
               </div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-2">
-                ??????
+                欢迎回来
               </h1>
               <p className="text-slate-600 dark:text-slate-400">
-                ??????????????????????
+                请输入访问密码以继续使用你的导航与同步数据
               </p>
             </div>
             <AuthModal isOpen={true} onLogin={handleLogin} />
@@ -619,7 +619,7 @@ function App() {
         </div>
       )}
 
-      {/* ???? */}
+      {/* 主应用内容 */}
       {(!requiresAuth || authToken) && (
         <>
           <AuthModal isOpen={isAuthOpen} onLogin={handleLogin} />
@@ -707,7 +707,7 @@ function App() {
                 </button>
                 <button
                   onClick={() => { if (!authToken) setIsAuthOpen(true); else { setEditingLink(undefined); setPrefillLink(undefined); setIsModalOpen(true); } }}
-                  className="btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-[#4285F4] to-[#34A853] hover:from-[#1A73E8] hover:to-[#2D8E4A] rounded-full transition-all shadow-md shadow-[#4285F4]/20 hover:shadow-lg hover:-translate-y-0.5"
+                  className="btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-[#4285F4] to-[#1A73E8] hover:from-[#1A73E8] hover:to-[#174EA6] rounded-full transition-all shadow-md shadow-[#4285F4]/20 hover:shadow-lg hover:-translate-y-0.5"
                 >
                   <Plus size={14} /> 添加
                 </button>
@@ -954,7 +954,7 @@ function App() {
                   ) : (
                     <section ref={searchResultsRef} className="search-results-panel py-12 text-center">
                       <Search className="mx-auto text-slate-300 dark:text-slate-600 mb-4" size={48} />
-                      <p className="text-slate-500 dark:text-slate-400">?????????</p>
+                      <p className="text-slate-500 dark:text-slate-400">未找到匹配的链接</p>
                     </section>
                   )}
                 </>
