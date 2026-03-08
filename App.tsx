@@ -62,8 +62,6 @@ function App() {
     searchMode, externalSearchSources, selectedSearchSource, setSelectedSearchSource,
     showSearchSourcePopup, setShowSearchSourcePopup,
     hoveredSearchSource, setHoveredSearchSource,
-    isIconHovered, setIsIconHovered,
-    isPopupHovered, setIsPopupHovered,
     handleSaveSearchConfig, handleSearchSourceSelect,
     setSearchMode, setExternalSearchSources,
   } = search;
@@ -554,6 +552,35 @@ function App() {
   const searchPanelTitle = hasSearchQuery ? '搜索结果' : '全部链接';
 
   useEffect(() => {
+    if (!showSearchSourcePopup) return;
+
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (target && !searchSectionRef.current?.contains(target)) {
+        setShowSearchSourcePopup(false);
+        setHoveredSearchSource(null);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowSearchSourcePopup(false);
+        setHoveredSearchSource(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showSearchSourcePopup, setShowSearchSourcePopup, setHoveredSearchSource]);
+
+  useEffect(() => {
     if (!isSearchPanelOpen) return;
     const frame = window.requestAnimationFrame(() => {
       searchResultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -775,13 +802,16 @@ function App() {
                 </h1>
 
                 {/* 搜索框 */}
-                <div ref={searchSectionRef} className="ios-search-shell relative w-full max-w-2xl mx-auto shadow-2xl shadow-blue-500/20 rounded-full group search-glow search-focus-ring transition-all duration-300 hover:shadow-blue-500/30 hover:-translate-y-1">
+                <div
+                  ref={searchSectionRef}
+                  className={`ios-search-shell relative isolate w-full max-w-2xl mx-auto rounded-full group search-glow search-focus-ring transition-all duration-300 hover:shadow-blue-500/30 hover:-translate-y-1 ${
+                    showSearchSourcePopup ? 'z-[70] shadow-2xl shadow-blue-500/25' : 'z-10 shadow-2xl shadow-blue-500/20'
+                  }`}
+                >
                   {/* 搜索源选择弹出窗口 */}
                   {showSearchSourcePopup && (
                     <div
-                      className="absolute left-0 top-full mt-4 w-full ios-popover rounded-3xl p-4 z-50 scale-in"
-                      onMouseEnter={() => setIsPopupHovered(true)}
-                      onMouseLeave={() => setIsPopupHovered(false)}
+                      className="absolute left-0 top-full mt-3 w-full ios-popover rounded-3xl p-4 z-[80] scale-in"
                     >
                       <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-2 sm:gap-3">
                         {externalSearchSources
@@ -820,11 +850,15 @@ function App() {
                   )}
 
                   {/* 搜索图标/引擎图标 */}
-                  <div
+                  <button
+                    type="button"
                     className="ios-search-trigger absolute left-4 top-1/2 -translate-y-1/2 cursor-pointer p-1.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-slate-700/50 transition-colors"
-                    onClick={() => setShowSearchSourcePopup(!showSearchSourcePopup)}
-                    onMouseEnter={() => setIsIconHovered(true)}
-                    onMouseLeave={() => setIsIconHovered(false)}
+                    onClick={() => {
+                      setShowSearchSourcePopup(!showSearchSourcePopup);
+                      if (showSearchSourcePopup) {
+                        setHoveredSearchSource(null);
+                      }
+                    }}
                     title="切换搜索引擎"
                   >
                     {activeSearchSource && activeSearchHostname ? (
@@ -839,7 +873,7 @@ function App() {
                     ) : (
                       <Search size={22} className="text-slate-500 group-focus-within:text-blue-500 transition-colors" />
                     )}
-                  </div>
+                  </button>
 
                   <input
                     type="text"

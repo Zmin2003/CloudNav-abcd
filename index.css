@@ -332,10 +332,10 @@ body::after {
   animation: iconBounce 0.5s ease both;
 }
 
-/* Desktop-only icon glow (shadow is expensive on mobile) */
+/* Keep the icon visually attached to the card on hover */
 @media (hover: hover) {
   .group:hover .icon-hover-float {
-    filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.25));
+    filter: none;
   }
 }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, Dispatch, SetStateAction } from 'react';
+import { useState, useEffect, useCallback, Dispatch, SetStateAction } from 'react';
 import { ExternalSearchSource, SearchMode, SearchConfig } from '../types';
 
 // Debounce hook for search input
@@ -25,10 +25,6 @@ interface UseSearchReturn {
   setShowSearchSourcePopup: (v: boolean) => void;
   hoveredSearchSource: ExternalSearchSource | null;
   setHoveredSearchSource: (s: ExternalSearchSource | null) => void;
-  isIconHovered: boolean;
-  setIsIconHovered: (v: boolean) => void;
-  isPopupHovered: boolean;
-  setIsPopupHovered: (v: boolean) => void;
 
   handleSaveSearchConfig: (
     sources: ExternalSearchSource[],
@@ -51,28 +47,6 @@ export function useSearch(): UseSearchReturn {
 
   const [showSearchSourcePopup, setShowSearchSourcePopup] = useState(false);
   const [hoveredSearchSource, setHoveredSearchSource] = useState<ExternalSearchSource | null>(null);
-  const [isIconHovered, setIsIconHovered] = useState(false);
-  const [isPopupHovered, setIsPopupHovered] = useState(false);
-  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    if (isIconHovered || isPopupHovered) {
-      if (hideTimeoutRef.current) {
-        clearTimeout(hideTimeoutRef.current);
-        hideTimeoutRef.current = null;
-      }
-      setShowSearchSourcePopup(true);
-    } else {
-      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-      hideTimeoutRef.current = setTimeout(() => {
-        setShowSearchSourcePopup(false);
-        setHoveredSearchSource(null);
-      }, 100);
-    }
-    return () => {
-      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-    };
-  }, [isIconHovered, isPopupHovered]);
 
   const handleSaveSearchConfig = useCallback(async (
     sources: ExternalSearchSource[],
@@ -134,8 +108,6 @@ export function useSearch(): UseSearchReturn {
     searchMode, externalSearchSources, selectedSearchSource, setSelectedSearchSource,
     showSearchSourcePopup, setShowSearchSourcePopup,
     hoveredSearchSource, setHoveredSearchSource,
-    isIconHovered, setIsIconHovered,
-    isPopupHovered, setIsPopupHovered,
     handleSaveSearchConfig, handleSearchSourceSelect,
     setSearchMode, setExternalSearchSources,
   };
