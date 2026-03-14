@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Clock, Globe, Bot, Flower2 } from 'lucide-react';
+import { X, Save, Clock, Globe, Bot, Sparkles } from 'lucide-react';
 import { PasswordExpiryConfig, SiteConfig, AiSortConfig } from '../types';
 
 interface SettingsModalProps {
@@ -127,10 +127,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                     <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <Flower2 size={16} className="text-[#EA4335]" />
+                                                <Sparkles size={16} className="text-[#1A73E8]" />
                                                 <div>
-                                                    <label className="block text-sm font-medium dark:text-white">樱花飘落效果</label>
-                                                    <p className="text-xs text-slate-400">在页面上显示飘落的樱花花瓣动画</p>
+                                                    <label className="block text-sm font-medium dark:text-white">液体流动背景</label>
+                                                    <p className="text-xs text-slate-400">在首页显示液态玻璃风格的流动背景</p>
                                                 </div>
                                             </div>
                                             <button

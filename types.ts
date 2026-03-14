@@ -41,7 +41,7 @@ export interface SiteConfig {
   websiteTitle?: string;      // 网站标题
   navigationName?: string;    // 导航栏名称
   faviconUrl?: string;        // 网站图标URL
-  sakuraEnabled?: boolean;    // 樱花飘落开关，默认开启
+  sakuraEnabled?: boolean;    // 液体流动背景开关，默认开启（兼容旧字段名）
 }
 
 // 搜索模式类型

@@ -117,17 +117,21 @@ const LinkCard: React.FC<LinkCardProps> = ({
     <img
       src={link.icon}
       alt=""
-      className="w-5 h-5 object-contain"
+      className="link-favicon-img"
+      loading="lazy"
+      decoding="async"
+      referrerPolicy="no-referrer"
+      draggable={false}
       onError={(e) => handleFaviconError(e, link.url)}
     />
   ) : (
-    link.title.charAt(0)
+    <span className="glass-link-fallback">{link.title.charAt(0)}</span>
   );
 
   const content = (
     <div className="flex items-center gap-3 w-full">
       {/* Icon */}
-      <div className="glass-link-icon text-blue-600 dark:text-blue-300 flex items-center justify-center text-sm font-bold uppercase shrink-0 w-8 h-8 rounded-xl icon-hover-float">
+      <div className="glass-link-icon text-blue-600 dark:text-blue-300 flex items-center justify-center text-sm font-bold uppercase shrink-0 w-8 h-8 rounded-[1rem] icon-hover-float">
         {iconElement}
       </div>
       {/* Title */}

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
+import React, { startTransition, useDeferredValue, useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
 import { Search, Plus, Settings, Upload, ArrowRight, Lock, Menu, X, Trash2, FolderInput, CheckSquare, Bot, Loader2 } from 'lucide-react';
 import { LinkItem, Category, DEFAULT_CATEGORIES, SearchConfig, PasswordExpiryConfig, AiSortConfig } from './types';
 import { createSearchSources, STORAGE_KEYS } from './constants';
@@ -8,7 +8,7 @@ import AuthModal from './components/AuthModal';
 import ContextMenu from './components/ContextMenu';
 import LinkCard from './components/LinkCard';
 import { applySiteConfig } from './utils/favicon';
-import SakuraBackground from './components/SakuraBackground';
+import LiquidBackground from './components/LiquidBackground';
 import { aiSortLinks } from './services/aiSortService';
 import { useAppData, safeHostname, ensureProtocol, compareByOrder } from './hooks/useAppData';
 import { useSearch } from './hooks/useSearch';
@@ -511,11 +511,17 @@ function App() {
     return !unlockedCategoryIds.has(catId);
   }, [categories, unlockedCategoryIds]);
 
+  const normalizedSearchQuery = useDeferredValue(debouncedSearchQuery.trim().toLowerCase());
+  const enabledSearchSources = useMemo(
+    () => externalSearchSources.filter(source => source.enabled),
+    [externalSearchSources],
+  );
+
   const displayedLinks = useMemo(() => {
     let result = links.filter(l => !isCategoryLocked(l.categoryId));
 
-    if (debouncedSearchQuery.trim()) {
-      const q = debouncedSearchQuery.toLowerCase();
+    if (normalizedSearchQuery) {
+      const q = normalizedSearchQuery;
       result = result.filter(l =>
         l.title.toLowerCase().includes(q) ||
         l.url.toLowerCase().includes(q) ||
@@ -525,14 +531,26 @@ function App() {
 
     // FIX: use slice() to avoid mutating the filtered array (which references state)
     return result.slice().sort(compareByOrder);
-  }, [links, debouncedSearchQuery, categories, unlockedCategoryIds, isCategoryLocked]);
+  }, [links, normalizedSearchQuery, isCategoryLocked]);
 
   const linksByCategory = useMemo(() => {
     const map = new Map<string, LinkItem[]>();
+
     for (const cat of categories) {
-      // filter() already returns a new array, safe to sort
-      map.set(cat.id, links.filter(l => l.categoryId === cat.id).sort(compareByOrder));
+      map.set(cat.id, []);
     }
+
+    for (const link of links) {
+      const bucket = map.get(link.categoryId);
+      if (bucket) {
+        bucket.push(link);
+      }
+    }
+
+    for (const bucket of map.values()) {
+      bucket.sort(compareByOrder);
+    }
+
     return map;
   }, [links, categories]);
 
@@ -547,7 +565,7 @@ function App() {
 
   // Memoize greeting to avoid recalc on every render
   const greeting = useMemo(() => getStatusGreeting(), []);
-  const hasSearchQuery = debouncedSearchQuery.trim().length > 0;
+  const hasSearchQuery = normalizedSearchQuery.length > 0;
   const isSearchPanelOpen = isSearchFocused || hasSearchQuery;
   const searchPanelTitle = hasSearchQuery ? '搜索结果' : '全部链接';
 
@@ -596,8 +614,7 @@ function App() {
 
   return (
     <div className="app-shell relative w-full">
-      {/* 樱花飘落背景 (Canvas sits at z-0 inside this z-10 container) */}
-      <SakuraBackground enabled={siteConfig.sakuraEnabled !== false} />
+      <LiquidBackground enabled={siteConfig.sakuraEnabled !== false} />
       <div className="flex h-dvh overflow-hidden text-slate-900 dark:text-slate-50 relative z-10 w-full">
       {/* 认证遮罩层 */}
       {requiresAuth && !authToken && (
@@ -814,8 +831,7 @@ function App() {
                       className="absolute left-0 top-full mt-3 w-full ios-popover rounded-3xl p-4 z-[80] scale-in"
                     >
                       <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 gap-2 sm:gap-3">
-                        {externalSearchSources
-                          .filter(source => source.enabled)
+                        {enabledSearchSources
                           .map((source, index) => {
                             // FIX: extract hostname safely to prevent crash
                             const hostname = safeHostname(source.url);
@@ -835,7 +851,9 @@ function App() {
                                         (e.target as HTMLImageElement).src = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
                                       }}
                                       alt={source.name}
-                                      className="w-5 h-5"
+                                      loading="lazy"
+                                      decoding="async"
+                                      className="w-5 h-5 object-contain bg-transparent"
                                     />
                                   ) : (
                                     <Search size={20} className="text-slate-400" />
@@ -865,7 +883,9 @@ function App() {
                       <img
                         src={`https://www.faviconextractor.com/favicon/${activeSearchHostname}?larger=true`}
                         alt={activeSearchSource.name}
-                        className="w-6 h-6 hover:scale-110 transition-transform"
+                        loading="lazy"
+                        decoding="async"
+                        className="w-6 h-6 object-contain bg-transparent hover:scale-110 transition-transform"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = `https://www.google.com/s2/favicons?domain=${activeSearchHostname}&sz=32`;
                         }}
@@ -879,7 +899,12 @@ function App() {
                     type="text"
                     placeholder={selectedSearchSource ? `在 ${selectedSearchSource.name} 搜索...` : "输入搜索内容..."}
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      startTransition(() => {
+                        setSearchQuery(value);
+                      });
+                    }}
                     onFocus={() => setIsSearchFocused(true)}
                     onBlur={() => {
                       window.requestAnimationFrame(() => {
@@ -932,7 +957,7 @@ function App() {
               {isSearchPanelOpen ? (
                 <>
                   {displayedLinks.length > 0 ? (
-                    <section ref={searchResultsRef} className="search-results-panel">
+                    <section ref={searchResultsRef} className="search-results-panel ios-section">
                       <div className="flex items-center gap-2 mb-4">
                         <Search className="text-[#4285F4]" size={24} />
                         <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">{searchPanelTitle}</h2>
@@ -952,7 +977,7 @@ function App() {
                       </div>
                     </section>
                   ) : (
-                    <section ref={searchResultsRef} className="search-results-panel py-12 text-center">
+                    <section ref={searchResultsRef} className="search-results-panel ios-empty-state py-12 text-center">
                       <Search className="mx-auto text-slate-300 dark:text-slate-600 mb-4" size={48} />
                       <p className="text-slate-500 dark:text-slate-400">未找到匹配的链接</p>
                     </section>
