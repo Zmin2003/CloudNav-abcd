@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Lock, ArrowRight, Loader2, X } from 'lucide-react';
+import { Lock, ArrowRight, X } from 'lucide-react';
 import { Category } from '../types';
 
 interface CategoryAuthModalProps {

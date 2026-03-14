@@ -98,8 +98,6 @@ import {
   Zap,
   Calendar,
   Clock,
-  Grid,
-  Music,
   type LucideIcon,
 } from 'lucide-react';
 

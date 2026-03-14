@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Upload, FileText, ArrowRight, Check, AlertCircle, FolderInput, ListTree, Database } from 'lucide-react';
+import { X, Upload, FileText, Check, AlertCircle, FolderInput, ListTree, Database } from 'lucide-react';
 import { Category, LinkItem, SearchConfig } from '../types';
 import { parseBookmarks } from '../services/bookmarkParser';
 
@@ -21,7 +21,6 @@ const ImportModal: React.FC<ImportModalProps> = ({
     onImportSearchConfig
 }) => {
     const [step, setStep] = useState<'upload' | 'preview'>('upload');
-    const [file, setFile] = useState<File | null>(null);
     const [analyzing, setAnalyzing] = useState(false);
     const [isImporting, setIsImporting] = useState(false);
 
@@ -144,7 +143,6 @@ const ImportModal: React.FC<ImportModalProps> = ({
 
     const resetState = () => {
         setStep('upload');
-        setFile(null);
         setParsedLinks([]);
         setParsedCategories([]);
         setParsedSearchConfig(null);
@@ -164,7 +162,6 @@ const ImportModal: React.FC<ImportModalProps> = ({
         const selectedFile = e.target.files?.[0];
         if (!selectedFile) return;
 
-        setFile(selectedFile);
         setAnalyzing(true);
         setImportType(type);
 

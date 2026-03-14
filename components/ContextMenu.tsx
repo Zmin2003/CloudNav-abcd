@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Copy, QrCode, Edit2, Trash2, Pin, X } from 'lucide-react';
+import { Copy, QrCode, Edit2, Trash2, Pin } from 'lucide-react';
 
 interface ContextMenuProps {
   isOpen: boolean;

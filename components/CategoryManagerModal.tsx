@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, ArrowUp, ArrowDown, Trash2, Edit2, Plus, Check, Lock, Unlock, Palette } from 'lucide-react';
+import { X, ArrowUp, ArrowDown, Trash2, Edit2, Plus, Check, Lock, Palette } from 'lucide-react';
 import { Category } from '../types';
 import Icon from './Icon';
 import IconSelector from './IconSelector';
@@ -214,12 +214,6 @@ const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({
     setIconSelectorTarget(null);
   };
   
-  const cancelAdd = () => {
-    setNewCatName('');
-    setNewCatPassword('');
-    setNewCatIcon('Folder');
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-white dark:bg-slate-800 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-xl overflow-hidden border border-slate-200 dark:border-slate-700 flex flex-col max-h-[85dvh] safe-area-bottom">
