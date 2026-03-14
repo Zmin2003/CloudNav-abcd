@@ -139,9 +139,14 @@ function App() {
 
   useEffect(() => {
     // Theme init
-    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      document.documentElement.classList.add('dark');
-    }
+    const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME);
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const shouldUseDark = savedTheme ? savedTheme === 'dark' : prefersDark;
+    const root = document.documentElement;
+
+    root.classList.toggle('dark', shouldUseDark);
+    root.style.colorScheme = shouldUseDark ? 'dark' : 'light';
+    root.style.backgroundColor = shouldUseDark ? '#06101d' : '#f8f9fa';
 
     // Load Token
     const savedToken = localStorage.getItem(AUTH_KEY);
@@ -615,7 +620,7 @@ function App() {
   return (
     <div className="app-shell relative w-full">
       <LiquidBackground enabled={siteConfig.sakuraEnabled !== false} />
-      <div className="flex h-dvh overflow-hidden text-slate-900 dark:text-slate-50 relative z-10 w-full">
+      <div className="app-viewport flex overflow-hidden text-slate-900 dark:text-slate-50 relative z-10 w-full">
       {/* 认证遮罩层 */}
       {requiresAuth && !authToken && (
         <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 flex items-center justify-center">
