@@ -89,14 +89,6 @@ const LinkCard: React.FC<LinkCardProps> = ({
     }
   }, [isBatchEditMode, link.id, onToggleSelection]);
 
-  // Also guard the <a> tag's own click to prevent navigation after long press
-  const handleLinkClick = useCallback((e: React.MouseEvent) => {
-    if (!safeUrl || longPressTriggered.current || Date.now() < cooldownUntil.current) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }, [link.url]);
-
   // 安全校验 URL，防止 javascript: 协议等 XSS
   const safeUrl = (() => {
     try {
@@ -112,6 +104,14 @@ const LinkCard: React.FC<LinkCardProps> = ({
       return '';
     }
   })();
+
+  // Also guard the <a> tag's own click to prevent navigation after long press
+  const handleLinkClick = useCallback((e: React.MouseEvent) => {
+    if (!safeUrl || longPressTriggered.current || Date.now() < cooldownUntil.current) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, [safeUrl]);
 
   const iconElement = link.icon ? (
     <img
@@ -146,7 +146,6 @@ const LinkCard: React.FC<LinkCardProps> = ({
 
   return (
     <div
-      key={link.id}
       className={`group relative touch-none-select card-shimmer card-glow-ring flex items-center justify-between rounded-2xl shadow-sm p-3
         glass-link-card card-touch-optimized ${isSelected
           ? 'glass-link-card-selected'
