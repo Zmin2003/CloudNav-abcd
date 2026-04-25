@@ -740,7 +740,7 @@ function App() {
                 </button>
                 <button
                   onClick={() => { if (!authToken) setIsAuthOpen(true); else { setEditingLink(undefined); setPrefillLink(undefined); setIsModalOpen(true); } }}
-                  className="btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-[#4285F4] to-[#1A73E8] hover:from-[#1A73E8] hover:to-[#174EA6] rounded-full transition-all shadow-md shadow-[#4285F4]/20 hover:shadow-lg hover:-translate-y-0.5"
+                  className="btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-[#2563eb] hover:bg-[#1d4ed8] rounded-full transition-all shadow-sm"
                 >
                   <Plus size={14} /> 添加
                 </button>
@@ -775,7 +775,7 @@ function App() {
                 <button
                   onClick={handleAiSort}
                   disabled={isAiSorting}
-                  className="btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-[#EA4335] to-[#FBBC05] hover:from-[#D93025] hover:to-[#F9AB00] rounded-full transition-all disabled:opacity-60 shadow-md shadow-[#EA4335]/20 hover:shadow-lg hover:-translate-y-0.5"
+                  className="btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-[#7c3aed] hover:bg-[#6d28d9] rounded-full transition-all disabled:opacity-60 shadow-sm"
                   title="AI 智能整理书签"
                 >
                   {isAiSorting ? <Loader2 size={14} className="animate-spin" /> : <Bot size={14} />} AI 整理
@@ -832,7 +832,7 @@ function App() {
                 <button
                   onClick={() => { handleAiSort(); setIsMobileMenuOpen(false); }}
                   disabled={isAiSorting}
-                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-white bg-gradient-to-r from-[#EA4335] to-[#FBBC05] rounded-lg active:scale-95 transition-all disabled:opacity-60 shadow-md shadow-[#EA4335]/20"
+                  className="flex items-center gap-1.5 px-3 py-2 text-sm text-white bg-[#7c3aed] rounded-lg active:scale-95 transition-all disabled:opacity-60 shadow-sm"
                 >
                   {isAiSorting ? <Loader2 size={16} className="animate-spin" /> : <Bot size={16} />} AI 整理
                 </button>
@@ -1085,7 +1085,7 @@ function App() {
           {/* Mobile FAB: Add Link */}
           <button
             onClick={() => { if (!authToken) setIsAuthOpen(true); else { setEditingLink(undefined); setPrefillLink(undefined); setIsModalOpen(true); } }}
-            className="sm:hidden fixed right-4 bottom-4 z-30 w-14 h-14 bg-[#4285F4] hover:bg-[#1A73E8] active:bg-[#174EA6] active:scale-90 text-white rounded-full shadow-lg shadow-[#4285F4]/30 flex items-center justify-center transition-all duration-200 safe-area-bottom fab-pulse"
+            className="sm:hidden fixed right-4 bottom-4 z-30 w-14 h-14 bg-[#2563eb] hover:bg-[#1d4ed8] active:bg-[#1e40af] active:scale-90 text-white rounded-full shadow-md flex items-center justify-center transition-all duration-200 safe-area-bottom"
             style={{ bottom: 'max(1rem, env(safe-area-inset-bottom))' }}
           >
             <Plus size={24} />

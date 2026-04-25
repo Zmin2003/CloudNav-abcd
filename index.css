@@ -1666,10 +1666,19 @@ body::after {
   display: none;
 }
 
+body,
+.dark body {
+  background: #f3f4f6 !important;
+}
+
+.dark body {
+  background: #0b1220 !important;
+}
+
 .header-glow::after {
   left: 0;
   right: 0;
-  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.28), transparent);
+  background: rgba(148, 163, 184, 0.3);
 }
 
 .brand-glow,
@@ -1677,25 +1686,36 @@ body::after {
   text-shadow: none;
 }
 
+.app-brand-text {
+  background: none !important;
+  color: #1e293b !important;
+}
+
+.dark .app-brand-text {
+  color: #e2e8f0 !important;
+}
+
 .hero-title {
-  background: linear-gradient(120deg, #2563eb 0%, #7c3aed 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  background: none;
+  color: #334155;
+}
+
+.dark .hero-title {
+  color: #e2e8f0;
 }
 
 .glass-header {
-  background: rgba(255, 255, 255, 0.95) !important;
+  background: #ffffff !important;
   border-bottom: 1px solid rgba(148, 163, 184, 0.28) !important;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 .dark .glass-header {
-  background: rgba(2, 6, 23, 0.9) !important;
+  background: #111827 !important;
   border-bottom-color: rgba(71, 85, 105, 0.45) !important;
-  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.32) !important;
+  box-shadow: none !important;
 }
 
 .glass-app-bg {
@@ -1711,9 +1731,9 @@ body::after {
 .glass-link-card,
 .glass-panel,
 .glass-card {
-  background: rgba(255, 255, 255, 0.92) !important;
+  background: #ffffff !important;
   border: 1px solid rgba(148, 163, 184, 0.28) !important;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08) !important;
+  box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -1725,9 +1745,9 @@ body::after {
 .dark .glass-link-card,
 .dark .glass-panel,
 .dark .glass-card {
-  background: rgba(15, 23, 42, 0.9) !important;
+  background: #0f172a !important;
   border-color: rgba(71, 85, 105, 0.5) !important;
-  box-shadow: 0 10px 26px rgba(2, 6, 23, 0.36) !important;
+  box-shadow: none !important;
 }
 
 .ios-search-input {
@@ -1753,6 +1773,14 @@ body::after {
 
 .search-focus-ring::before {
   display: none;
+}
+
+.btn-pop:hover {
+  transform: none;
+}
+
+.btn-pop:active {
+  transform: scale(0.98);
 }
 
 /* ==================== Accessibility ==================== */
