@@ -50,7 +50,7 @@ function App() {
   // --- Custom Hooks ---
   const appData = useAppData();
   const {
-    links, categories, webDavConfig, passwordExpiryConfig, siteConfig, aiSortConfig,
+    links, categories, syncStatus, webDavConfig, passwordExpiryConfig, siteConfig, aiSortConfig,
     setLinks, setCategories, setAppDataVersion, setPasswordExpiryConfig, setSiteConfig, setAiSortConfig,
     loadFromLocal, syncToCloud, loadLinkIcons,
     handleSaveWebDavConfig, handleSaveAiSortConfig,
@@ -716,6 +716,17 @@ function App() {
                 <span className="brand-glow app-brand-text text-lg sm:text-xl font-bold">
                   {siteConfig.navigationName || 'Zmin Nav'}
                 </span>
+                <span className={`hidden md:inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium tracking-wide ${
+                  syncStatus === 'saving'
+                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                    : syncStatus === 'saved'
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                      : syncStatus === 'error'
+                        ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'
+                        : 'bg-slate-100 text-slate-500 dark:bg-slate-800/60 dark:text-slate-400'
+                }`}>
+                  {syncStatus === 'saving' ? '同步中' : syncStatus === 'saved' ? '已同步' : syncStatus === 'error' ? '同步失败' : '本地模式'}
+                </span>
               </div>
 
               {/* Desktop Actions */}
@@ -740,10 +751,26 @@ function App() {
                   <Upload size={14} /> 导入
                 </button>
                 <button
+                  onClick={() => { if (!authToken) setIsAuthOpen(true); else setIsBackupModalOpen(true); }}
+                  className="btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full border border-slate-300 dark:border-slate-600 transition-all hover:shadow-sm"
+                >
+                  <Upload size={14} /> 备份
+                </button>
+                <button
                   onClick={() => { if (!authToken) setIsAuthOpen(true); else setIsCatManagerOpen(true); }}
                   className="btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50 rounded-full border border-slate-300 dark:border-slate-600 transition-all hover:shadow-sm"
                 >
                   <Settings size={14} /> 分类
+                </button>
+                <button
+                  onClick={toggleBatchEditMode}
+                  className={`btn-pop flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-full border transition-all hover:shadow-sm ${
+                    isBatchEditMode
+                      ? 'bg-[#D2E3FC] dark:bg-[#4285F4]/25 text-[#1A73E8] dark:text-[#8AB4F8] border-[#AECBFA] dark:border-[#4285F4]/40'
+                      : 'text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50 border-slate-300 dark:border-slate-600'
+                  }`}
+                >
+                  <CheckSquare size={14} /> 批量
                 </button>
                 <button
                   onClick={handleAiSort}
@@ -1121,4 +1148,3 @@ function App() {
 }
 
 export default App;
-

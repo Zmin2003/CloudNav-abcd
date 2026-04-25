@@ -95,7 +95,7 @@ const LinkCard: React.FC<LinkCardProps> = ({
       e.preventDefault();
       e.stopPropagation();
     }
-  }, [link.url]);
+  }, [safeUrl]);
 
   // 安全校验 URL，防止 javascript: 协议等 XSS
   const safeUrl = (() => {
@@ -146,7 +146,6 @@ const LinkCard: React.FC<LinkCardProps> = ({
 
   return (
     <div
-      key={link.id}
       className={`group relative touch-none-select card-shimmer card-glow-ring flex items-center justify-between rounded-2xl shadow-sm p-3
         glass-link-card card-touch-optimized ${isSelected
           ? 'glass-link-card-selected'
