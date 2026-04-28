@@ -3,6 +3,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  root: './',
   server: {
     port: 3000,
     host: '0.0.0.0',
@@ -11,21 +12,21 @@ export default defineConfig({
   resolve: {
     extensions: ['.tsx', '.ts', '.jsx', '.js', '.json', '.mjs'],
     alias: {
-      '@': path.resolve(__dirname, '.'),
+      '@': path.resolve(__dirname, './src'),
     }
   },
   build: {
-    // Target modern browsers for smaller output
     target: 'es2020',
-    // Enable CSS code splitting
     cssCodeSplit: true,
     rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+      },
       output: {
         manualChunks(id) {
-          // 拖拽排序库
           if (id.includes('@dnd-kit')) return 'dnd-kit';
-          // 图标库
           if (id.includes('lucide-react')) return 'lucide';
+          if (id.includes('node_modules')) return 'vendor';
         }
       }
     }
