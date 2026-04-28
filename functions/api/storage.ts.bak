@@ -375,9 +375,6 @@ export const onRequestPost = async (context: { request: Request; env: Env }) => 
           sanitizedSiteConfig.faviconUrl = siteConfig.faviconUrl.slice(0, 2048);
         }
       }
-      if (typeof siteConfig.liquidBackgroundEnabled === 'boolean') {
-        sanitizedSiteConfig.liquidBackgroundEnabled = siteConfig.liquidBackgroundEnabled;
-      }
       if (typeof siteConfig.sakuraEnabled === 'boolean') {
         sanitizedSiteConfig.sakuraEnabled = siteConfig.sakuraEnabled;
       }

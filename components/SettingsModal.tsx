@@ -54,7 +54,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4 ios-modal-backdrop">
             <div className="ios-modal-panel rounded-t-2xl sm:rounded-3xl w-full sm:max-w-lg overflow-hidden flex flex-col max-h-[90dvh] safe-area-bottom">
 
-                <div className="ios-modal-header flex justify-between items-center p-4 border-b border-white/30 dark:border-white/10 shrink-0">
+                <div className="ios-modal-header flex justify-between items-center p-4 border-b shrink-0">
                     <div className="flex gap-3 sm:gap-4 overflow-x-auto flex-nowrap">
                         <button
                             onClick={() => setActiveTab('website')}
@@ -76,7 +76,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                         </button>
                     </div>
                     <button onClick={onClose} className="ios-close-btn p-1.5 rounded-full transition-colors">
-                        <X className="w-5 h-5 dark:text-slate-400" />
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 
@@ -124,7 +124,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                         />
                                         <p className="text-xs text-slate-400 mt-1">浏览器标签页显示的图标</p>
                                     </div>
-                                    <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                                    <div className="pt-4 border-t">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <Sparkles size={16} className="text-[#1A73E8]" />
@@ -135,13 +135,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={() => setLocalSiteConfig(prev => ({ ...prev, sakuraEnabled: prev.sakuraEnabled !== false ? false : true }))}
+                                                onClick={() => setLocalSiteConfig(prev => ({ ...prev, liquidBackgroundEnabled: prev.liquidBackgroundEnabled !== false ? false : true }))}
                                                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                                                    localSiteConfig.sakuraEnabled !== false ? 'ios-toggle-track-active' : 'ios-toggle-track'
+                                                    localSiteConfig.liquidBackgroundEnabled !== false ? 'ios-toggle-track-active' : 'ios-toggle-track'
                                                 }`}
                                             >
                                                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                                                    localSiteConfig.sakuraEnabled !== false ? 'translate-x-6' : 'translate-x-1'
+                                                    localSiteConfig.liquidBackgroundEnabled !== false ? 'translate-x-6' : 'translate-x-1'
                                                 }`} />
                                             </button>
                                         </div>
@@ -238,9 +238,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     )}
                 </div>
 
-                <div className="ios-modal-footer p-4 border-t border-white/30 dark:border-white/10 flex justify-end gap-3 shrink-0">
-                    <button onClick={onClose} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg">取消</button>
-                    <button onClick={handleSave} className="px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-lg flex items-center gap-2 font-medium">
+                <div className="ios-modal-footer p-4 border-t flex justify-end gap-3 shrink-0">
+                    <button onClick={onClose} className="ios-secondary-btn px-4 py-2 text-sm rounded-lg">取消</button>
+                    <button onClick={handleSave} className="ios-primary-btn px-4 py-2 text-sm text-white rounded-lg flex items-center gap-2 font-medium">
                         <Save size={16} /> 保存设置
                     </button>
                 </div>

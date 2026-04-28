@@ -38,10 +38,12 @@ export interface PasswordExpiryConfig {
 
 // 站点自定义配置
 export interface SiteConfig {
-  websiteTitle?: string;      // 网站标题
-  navigationName?: string;    // 导航栏名称
-  faviconUrl?: string;        // 网站图标URL
-  sakuraEnabled?: boolean;    // 液体流动背景开关，默认开启（兼容旧字段名）
+  websiteTitle?: string;           // 网站标题
+  navigationName?: string;         // 导航栏名称
+  faviconUrl?: string;             // 网站图标URL
+  liquidBackgroundEnabled?: boolean; // 液体流动背景开关
+  // Backward compatibility
+  sakuraEnabled?: boolean;         // 已弃用：使用 liquidBackgroundEnabled 替代
 }
 
 // 搜索模式类型

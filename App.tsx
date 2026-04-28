@@ -619,7 +619,7 @@ function App() {
 
   return (
     <div className="app-shell relative w-full">
-      <LiquidBackground enabled={siteConfig.sakuraEnabled !== false} />
+      <LiquidBackground enabled={siteConfig.liquidBackgroundEnabled !== false} />
       <div className="app-viewport flex overflow-hidden text-slate-900 dark:text-slate-50 relative z-10 w-full">
       {/* 认证遮罩层 */}
       {requiresAuth && !authToken && (

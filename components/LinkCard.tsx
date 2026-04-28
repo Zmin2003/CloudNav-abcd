@@ -24,7 +24,6 @@ const LinkCard: React.FC<LinkCardProps> = ({
 }) => {
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggered = useRef(false);
-  // Cooldown: suppress navigation for a short window after context menu fires
   const cooldownUntil = useRef<number>(0);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -37,9 +36,7 @@ const LinkCard: React.FC<LinkCardProps> = ({
     longPressTriggered.current = false;
     longPressTimer.current = setTimeout(() => {
       longPressTriggered.current = true;
-      // Set a cooldown so that the next click is suppressed
       cooldownUntil.current = Date.now() + 700;
-      // Synthesize a mouse event at the touch position for the context menu
       const syntheticEvent = {
         preventDefault: () => { },
         stopPropagation: () => { },
@@ -55,7 +52,6 @@ const LinkCard: React.FC<LinkCardProps> = ({
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
-    // If a long press was triggered, prevent the subsequent click/navigation
     if (longPressTriggered.current) {
       e.preventDefault();
       e.stopPropagation();
@@ -78,7 +74,6 @@ const LinkCard: React.FC<LinkCardProps> = ({
   }, []);
 
   const handleClick = useCallback((e: React.MouseEvent) => {
-    // Block click if we're in the cooldown window (context menu just closed)
     if (longPressTriggered.current || Date.now() < cooldownUntil.current) {
       e.preventDefault();
       e.stopPropagation();
@@ -89,7 +84,7 @@ const LinkCard: React.FC<LinkCardProps> = ({
     }
   }, [isBatchEditMode, link.id, onToggleSelection]);
 
-  // 安全校验 URL，防止 javascript: 协议等 XSS
+  // Validate URL safely
   const safeUrl = (() => {
     try {
       const normalized = link.url.startsWith('http://') || link.url.startsWith('https://')
@@ -105,7 +100,6 @@ const LinkCard: React.FC<LinkCardProps> = ({
     }
   })();
 
-  // Also guard the <a> tag's own click to prevent navigation after long press
   const handleLinkClick = useCallback((e: React.MouseEvent) => {
     if (!safeUrl || longPressTriggered.current || Date.now() < cooldownUntil.current) {
       e.preventDefault();
@@ -125,13 +119,13 @@ const LinkCard: React.FC<LinkCardProps> = ({
       onError={(e) => handleFaviconError(e, link.url)}
     />
   ) : (
-    <span className="glass-link-fallback">{link.title.charAt(0)}</span>
+    <span className="glass-link-fallback">{link.title.charAt(0).toUpperCase()}</span>
   );
 
   const content = (
     <div className="flex items-center gap-3 w-full">
       {/* Icon */}
-      <div className="glass-link-icon text-blue-600 dark:text-blue-300 flex items-center justify-center text-sm font-bold uppercase shrink-0 w-8 h-8 rounded-[1rem] icon-hover-float">
+      <div className="glass-link-icon text-blue-600 dark:text-blue-300 flex items-center justify-center text-sm font-bold uppercase shrink-0 w-10 h-10 rounded-lg icon-hover-float">
         {iconElement}
       </div>
       {/* Title */}
@@ -146,10 +140,9 @@ const LinkCard: React.FC<LinkCardProps> = ({
 
   return (
     <div
-      className={`group relative touch-none-select card-shimmer card-glow-ring flex items-center justify-between rounded-2xl shadow-sm p-3
-        glass-link-card card-touch-optimized ${isSelected
-          ? 'glass-link-card-selected'
-          : ''
+      className={`group relative touch-none-select card-shimmer flex items-center justify-between rounded-lg shadow-sm p-3 glass-link-card card-touch-optimized transition-all ${isSelected
+        ? 'glass-link-card-selected'
+        : ''
         } ${isBatchEditMode ? 'cursor-pointer' : ''}`}
       onClick={handleClick}
       onContextMenu={(e) => onContextMenu(e, link)}
