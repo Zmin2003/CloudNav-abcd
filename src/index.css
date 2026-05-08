@@ -242,3 +242,103 @@ body::after {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .001ms !important; }
 }
+
+/* Readability pass: keep the existing glass UI, but prevent mobile overlays from becoming transparent over busy backgrounds. */
+.ios-modal-backdrop {
+  background: rgba(2, 6, 23, .38);
+  backdrop-filter: blur(10px) saturate(1.15);
+  -webkit-backdrop-filter: blur(10px) saturate(1.15);
+}
+
+.ios-modal-panel {
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid rgba(255, 255, 255, .86);
+  box-shadow: 0 28px 90px -36px rgba(15, 23, 42, .55), inset 0 1px 0 rgba(255, 255, 255, .78);
+  backdrop-filter: blur(26px) saturate(1.25);
+  -webkit-backdrop-filter: blur(26px) saturate(1.25);
+}
+.dark .ios-modal-panel {
+  background: rgba(8, 18, 32, .94);
+  border-color: rgba(148, 220, 255, .18);
+  box-shadow: 0 32px 96px -34px rgba(0, 0, 0, .9), inset 0 1px 0 rgba(255, 255, 255, .06);
+}
+.ios-modal-header, .ios-modal-footer {
+  background: rgba(255, 255, 255, .68);
+  border-color: rgba(15, 23, 42, .1);
+}
+.dark .ios-modal-header, .dark .ios-modal-footer {
+  background: rgba(15, 23, 42, .78);
+  border-color: rgba(148, 163, 184, .18);
+}
+
+.ios-input, .ios-select {
+  width: 100%;
+  background: rgba(255, 255, 255, .82);
+  border: 1px solid rgba(15, 23, 42, .12);
+  border-radius: .9rem;
+  color: var(--text-primary);
+  outline: none;
+}
+.dark .ios-input, .dark .ios-select {
+  background: rgba(15, 23, 42, .78);
+  border-color: rgba(148, 163, 184, .22);
+  color: var(--text-primary);
+}
+.ios-input:focus, .ios-select:focus {
+  border-color: rgba(34, 211, 238, .55);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, .12);
+}
+
+.ios-secondary-btn {
+  background: rgba(148, 163, 184, .16);
+  color: var(--text-secondary);
+}
+.dark .ios-secondary-btn { background: rgba(148, 163, 184, .14); }
+.ios-close-btn:hover { background: rgba(148, 163, 184, .18); }
+.ios-tab-btn-active { color: var(--primary-color); }
+
+/* Search-engine dropdown: stronger card surface so icons/text remain readable on phones. */
+.ios-popover {
+  background: rgba(255, 255, 255, .92);
+  border-color: rgba(255, 255, 255, .9);
+}
+.dark .ios-popover {
+  background: rgba(8, 18, 32, .94);
+  border-color: rgba(148, 220, 255, .18);
+}
+.ios-source-item { background: rgba(255, 255, 255, .72); }
+.dark .ios-source-item { background: rgba(15, 23, 42, .68); }
+
+@media (max-width: 639px) {
+  :root {
+    --glass-bg: rgba(255, 255, 255, .82);
+    --glass-border: rgba(255, 255, 255, .9);
+  }
+  .dark {
+    --glass-bg: rgba(8, 18, 32, .86);
+    --glass-border: rgba(148, 220, 255, .2);
+  }
+
+  .ios-modal-backdrop { background: rgba(2, 6, 23, .52); }
+  .ios-modal-panel {
+    background: rgba(255, 255, 255, .97);
+    max-height: min(90dvh, 92vh);
+  }
+  .dark .ios-modal-panel { background: rgba(8, 18, 32, .97); }
+
+  .ios-popover {
+    background: rgba(255, 255, 255, .96);
+    box-shadow: 0 24px 70px -30px rgba(15, 23, 42, .55), inset 0 1px 0 rgba(255, 255, 255, .78);
+  }
+  .dark .ios-popover {
+    background: rgba(8, 18, 32, .97);
+    box-shadow: 0 26px 74px -28px rgba(0, 0, 0, .92), inset 0 1px 0 rgba(255, 255, 255, .06);
+  }
+
+  .glass-panel {
+    background: rgba(255, 255, 255, .9);
+  }
+  .dark .glass-panel {
+    background: rgba(8, 18, 32, .92);
+  }
+}
