@@ -20,7 +20,6 @@ function generateUniqueId(): string {
   return `${Date.now()}-${++idCounter}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-// Lazy-loaded modals (code-splitting: only loaded when opened)
 const LinkModal = lazy(() => import('./components/LinkModal'));
 const CategoryManagerModal = lazy(() => import('./components/CategoryManagerModal'));
 const BackupModal = lazy(() => import('./components/BackupModal'));
@@ -30,11 +29,8 @@ const SettingsModal = lazy(() => import('./components/SettingsModal'));
 const QRCodeModal = lazy(() => import('./components/QRCodeModal'));
 
 const AUTH_KEY = STORAGE_KEYS.AUTH_TOKEN;
-
-// Suspense fallback for lazy-loaded modals
 const ModalFallback = () => null;
 
-// Time Greeting (pure function, no need to be inside component)
 function getStatusGreeting(): string {
   const hour = new Date().getHours();
   if (hour < 5) return '夜深了，注意休息';
@@ -46,6 +42,8 @@ function getStatusGreeting(): string {
   return '夜深了，早点休息';
 }
 
-export default function App() {
+function App() {
   return null;
 }
+
+export default App;
