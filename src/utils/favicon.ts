@@ -1,4 +1,5 @@
 import React from 'react';
+const faviconFallbackCache = new Set<string>();
 
 /**
  * Favicon 图片加载失败时的统一降级处理
@@ -16,7 +17,8 @@ export const handleFaviconError = (
       return;
     }
     const googleFaviconUrl = `https://www.google.com/s2/favicons?domain=${parsed.hostname}&sz=32`;
-    if (target.src !== googleFaviconUrl) {
+    if (!faviconFallbackCache.has(googleFaviconUrl) && target.src !== googleFaviconUrl) {
+      faviconFallbackCache.add(googleFaviconUrl);
       target.src = googleFaviconUrl;
     } else {
       target.style.display = 'none';
