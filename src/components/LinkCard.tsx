@@ -84,7 +84,6 @@ const LinkCard: React.FC<LinkCardProps> = ({
     }
   }, [isBatchEditMode, link.id, onToggleSelection]);
 
-  // Validate URL safely
   const safeUrl = (() => {
     try {
       const normalized = link.url.startsWith('http://') || link.url.startsWith('https://')
@@ -126,11 +125,9 @@ const LinkCard: React.FC<LinkCardProps> = ({
 
   const content = (
     <div className="flex items-center gap-3 w-full p-3">
-      {/* Icon */}
       <div className="w-10 h-10 flex-shrink-0 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden flex items-center justify-center transition-transform group-hover:scale-110">
         {iconElement}
       </div>
-      {/* Title */}
       <div className="flex-1 min-w-0">
         <h3 className={`truncate text-sm font-semibold ${isBatchEditMode
           ? 'text-slate-900 dark:text-slate-100'
@@ -158,7 +155,6 @@ const LinkCard: React.FC<LinkCardProps> = ({
       onTouchMove={handleTouchMove}
       onTouchCancel={handleTouchCancel}
     >
-      {/* Pinned indicator */}
       {link.pinned && (
         <span className="pinned-badge absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full shadow-sm z-10 border-2 border-white dark:border-slate-900" />
       )}
