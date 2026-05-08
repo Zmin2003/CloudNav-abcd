@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, Dispatch, SetStateAction } from 'react';
+import { useState, useCallback, useRef, useEffect, Dispatch, SetStateAction } from 'react';
 import { LinkItem, Category, DEFAULT_CATEGORIES, INITIAL_LINKS, PasswordExpiryConfig, SiteConfig, WebDavConfig, AiSortConfig } from '../types';
 import { STORAGE_KEYS } from '../constants';
 import { applySiteConfig } from '../utils/favicon';
@@ -127,7 +127,16 @@ export function useAppData(): UseAppDataReturn {
 
   // 使用 ref 跟踪最新版本号，避免闭包过期
   const versionRef = useRef(appDataVersion);
+  const syncResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   versionRef.current = appDataVersion;
+
+  useEffect(() => {
+    return () => {
+      if (syncResetTimerRef.current) {
+        clearTimeout(syncResetTimerRef.current);
+      }
+    };
+  }, []);
 
   const loadFromLocal = useCallback(() => {
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -195,7 +204,13 @@ export function useAppData(): UseAppDataReturn {
       } catch { /* ignore */ }
 
       setSyncStatus('saved');
-      setTimeout(() => setSyncStatus('idle'), 2000);
+      if (syncResetTimerRef.current) {
+        clearTimeout(syncResetTimerRef.current);
+      }
+      syncResetTimerRef.current = setTimeout(() => {
+        setSyncStatus('idle');
+        syncResetTimerRef.current = null;
+      }, 2000);
       return true;
     } catch (error) {
       console.error('Sync failed', error);
@@ -241,12 +256,20 @@ export function useAppData(): UseAppDataReturn {
     if (domains.length === 0) return;
 
     const iconByDomain = new Map<string, string>();
-    const results = await Promise.allSettled(
-      domains.map(async (domain) => {
-        const icon = await fetchCachedFavicon(domain);
-        return { domain, icon };
-      })
-    );
+    const domainsToLoad = domains.slice(0, 80);
+    const results: PromiseSettledResult<{ domain: string; icon: string | null }>[] = [];
+    const concurrency = 8;
+
+    for (let index = 0; index < domainsToLoad.length; index += concurrency) {
+      const chunk = domainsToLoad.slice(index, index + concurrency);
+      const chunkResults = await Promise.allSettled(
+        chunk.map(async (domain) => {
+          const icon = await fetchCachedFavicon(domain);
+          return { domain, icon };
+        })
+      );
+      results.push(...chunkResults);
+    }
     for (const result of results) {
       if (result.status === 'fulfilled' && result.value.icon) {
         iconByDomain.set(result.value.domain, result.value.icon);
