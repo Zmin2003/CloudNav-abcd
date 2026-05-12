@@ -435,3 +435,141 @@ textarea:focus-visible {
     background: rgba(10, 20, 12, .94);
   }
 }
+
+
+/* ==================== Matcha Layout Refresh ==================== */
+
+/* Layout shell overrides Tailwind utilities from App.tsx without patching JSX. */
+.app-main > div.relative.isolate.flex-1 {
+  width: 100%;
+  max-width: 1500px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1.25rem 1rem;
+  gap: 2rem;
+}
+
+@media (min-width: 640px) {
+  .app-main > div.relative.isolate.flex-1 {
+    padding: 2rem 1.5rem;
+    gap: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-main > div.relative.isolate.flex-1 {
+    padding: 2.5rem;
+    gap: 3rem;
+  }
+}
+
+.app-main > div.relative.isolate.flex-1 > * + * {
+  margin-top: 0;
+}
+
+.layout-shell {
+  container-type: inline-size;
+}
+
+.hero-search-section {
+  min-height: clamp(260px, 42vh, 520px);
+}
+
+.hero-subtitle {
+  text-wrap: balance;
+  letter-spacing: .01em;
+}
+
+.layout-category-section {
+  position: relative;
+  overflow: hidden;
+  border-radius: clamp(1.35rem, 2vw, 2rem);
+  padding: clamp(1rem, 1.6vw, 1.55rem);
+}
+
+.layout-category-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .72;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(183, 220, 142, .18), transparent 32%),
+    linear-gradient(120deg, rgba(255, 255, 248, .16), transparent 42%);
+}
+
+.dark .layout-category-section::before {
+  opacity: .45;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(183, 220, 142, .12), transparent 34%),
+    linear-gradient(120deg, rgba(255, 255, 255, .06), transparent 42%);
+}
+
+.category-heading,
+.link-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.category-icon-shell {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .72),
+    0 12px 26px -20px rgba(79, 111, 51, .88);
+}
+
+.link-grid {
+  align-items: stretch;
+}
+
+.glass-link-card {
+  height: 100%;
+}
+
+.link-card-content {
+  justify-content: space-between;
+}
+
+.link-card-icon {
+  box-shadow:
+    0 14px 34px -24px rgba(79, 111, 51, .82),
+    inset 0 1px 0 rgba(255, 255, 255, .76);
+}
+
+.dark .link-card-icon {
+  background: rgba(18, 31, 18, .82);
+  border-color: rgba(183, 220, 142, .16);
+}
+
+/* Mobile floating add button: override Tailwind bg/text utilities from App.tsx. */
+button.sm\:hidden.fixed.right-4.bottom-4 {
+  color: #13200f !important;
+  background: linear-gradient(135deg, #b7dc8e, #6f9448) !important;
+  box-shadow:
+    0 18px 48px -24px rgba(79, 111, 51, .92),
+    inset 0 1px 0 rgba(255, 255, 255, .40) !important;
+}
+
+button.sm\:hidden.fixed.right-4.bottom-4:hover {
+  filter: brightness(1.05) saturate(1.05);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 639px) {
+  .hero-search-section {
+    min-height: clamp(230px, 34vh, 360px);
+  }
+
+  .layout-category-section {
+    padding: .95rem;
+    border-radius: 1.35rem;
+  }
+
+  .link-card-content {
+    min-height: 128px;
+    padding: .95rem;
+  }
+
+  .glass-link-card {
+    min-height: 136px;
+  }
+}
