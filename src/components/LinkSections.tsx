@@ -27,7 +27,7 @@ const LinkGrid: React.FC<{
   onToggleSelection: (id: string) => void;
   onContextMenu: (event: React.MouseEvent, link: LinkItem) => void;
 }> = ({ links, isBatchEditMode, selectedLinks, onToggleSelection, onContextMenu }) => (
-  <div className="grid gap-2.5 sm:gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10">
+  <div className="link-grid grid gap-4 sm:gap-5 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
     {links.map(link => (
       <LinkCard
         key={link.id}
@@ -47,11 +47,11 @@ const LinkSections: React.FC<LinkSectionsProps> = ({
 }) => {
   if (isSearchPanelOpen) {
     return displayedLinks.length > 0 ? (
-      <section ref={searchResultsRef} className="search-results-panel ios-section">
-        <div className="flex items-center gap-2 mb-4">
-          <Search className="text-[#4285F4]" size={24} />
-          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">{searchPanelTitle}</h2>
-          <span className="ios-count-badge text-sm px-2 py-0.5 rounded-full">{displayedLinks.length}</span>
+      <section ref={searchResultsRef} className="layout-category-section search-results-panel ios-section">
+        <div className="category-heading flex items-center gap-3 mb-5 sm:mb-6">
+          <Search className="text-[#6f9448] dark:text-[#b7dc8e]" size={24} />
+          <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-800 dark:text-slate-100">{searchPanelTitle}</h2>
+          <span className="ios-count-badge text-xs px-2.5 py-1 rounded-full">{displayedLinks.length}</span>
         </div>
         <LinkGrid
           links={displayedLinks}
@@ -62,7 +62,7 @@ const LinkSections: React.FC<LinkSectionsProps> = ({
         />
       </section>
     ) : (
-      <section ref={searchResultsRef} className="search-results-panel ios-empty-state py-12 text-center">
+      <section ref={searchResultsRef} className="layout-category-section search-results-panel ios-empty-state py-16 text-center">
         <Search className="mx-auto text-slate-300 dark:text-slate-600 mb-4" size={48} />
         <p className="text-slate-500 dark:text-slate-400">未找到匹配的链接</p>
       </section>
@@ -78,23 +78,23 @@ const LinkSections: React.FC<LinkSectionsProps> = ({
         if (catLinks.length === 0 && !isAuthenticated) return null;
 
         return (
-          <section key={cat.id} id={`cat-${cat.id}`} className="fade-up" style={{ animationDelay: `${index * 60}ms` }}>
-            <div className="flex items-center gap-2 mb-4 cat-title-line">
-              <div className="p-1.5 rounded-lg bg-[#E8F0FE] dark:bg-[#4285F4]/20 text-[#1A73E8] dark:text-[#8AB4F8]">
+          <section key={cat.id} id={`cat-${cat.id}`} className="layout-category-section ios-section fade-up" style={{ animationDelay: `${index * 60}ms` }}>
+            <div className="category-heading flex items-center gap-3 mb-5 sm:mb-6 cat-title-line">
+              <div className="category-icon-shell p-2 rounded-2xl bg-[#eef6df] dark:bg-[#b7dc8e]/15 text-[#6f9448] dark:text-[#b7dc8e]">
                 <Icon name={cat.icon} size={18} />
               </div>
-              <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">{cat.name}</h2>
-              {isLocked && <Lock size={14} className="text-[#FBBC05]" />}
-              <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">{catLinks.length}</span>
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-800 dark:text-slate-100">{cat.name}</h2>
+              {isLocked && <Lock size={14} className="text-[#d59c42] dark:text-[#e5c27c]" />}
+              <span className="ios-count-badge text-xs px-2.5 py-1 rounded-full">{catLinks.length}</span>
             </div>
 
             {isLocked ? (
-              <div className="locked-shimmer flex flex-col items-center justify-center py-8 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
-                <Lock size={24} className="text-[#FBBC05] mb-2" />
+              <div className="locked-shimmer flex flex-col items-center justify-center py-12 rounded-3xl border border-dashed">
+                <Lock size={24} className="text-[#d59c42] dark:text-[#e5c27c] mb-2" />
                 <p className="text-slate-500 text-sm mb-3">此分类已锁定</p>
                 <button
                   onClick={() => onRequestUnlock(cat)}
-                  className="px-4 py-1.5 bg-[#FBBC05] text-[#202124] text-xs font-medium rounded-full hover:bg-[#F9AB00] transition-colors"
+                  className="ios-primary-btn btn-pop px-5 py-2 text-xs rounded-full transition-colors"
                 >
                   输入密码解锁
                 </button>
