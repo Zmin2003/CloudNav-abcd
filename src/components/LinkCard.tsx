@@ -118,24 +118,24 @@ const LinkCard: React.FC<LinkCardProps> = ({
       onError={(e) => handleFaviconError(e, link.url)}
     />
   ) : (
-    <span className="flex items-center justify-center font-bold text-blue-500 dark:text-blue-400">
+    <span className="flex items-center justify-center font-bold text-[#6f9448] dark:text-[#b7dc8e]">
       {link.title.charAt(0).toUpperCase()}
     </span>
   );
 
   const content = (
-    <div className="flex items-center gap-3 w-full p-3">
-      <div className="w-10 h-10 flex-shrink-0 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden flex items-center justify-center transition-transform group-hover:scale-110">
+    <div className="link-card-content flex flex-col items-start gap-4 w-full min-h-[152px] p-4 sm:p-5">
+      <div className="link-card-icon w-12 h-12 sm:w-14 sm:h-14 flex-shrink-0 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden flex items-center justify-center transition-transform group-hover:scale-110">
         {iconElement}
       </div>
-      <div className="flex-1 min-w-0">
-        <h3 className={`truncate text-sm font-semibold ${isBatchEditMode
+      <div className="flex-1 min-w-0 w-full">
+        <h3 className={`line-clamp-2 text-base font-bold leading-snug ${isBatchEditMode
           ? 'text-slate-900 dark:text-slate-100'
-          : 'text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors'
+          : 'text-slate-700 dark:text-slate-200 group-hover:text-[#6f9448] dark:group-hover:text-[#b7dc8e] transition-colors'
           }`}>
           {link.title}
         </h3>
-        <p className="truncate text-[10px] text-slate-400 dark:text-slate-500 font-normal">
+        <p className="mt-2 truncate text-xs text-slate-500 dark:text-slate-400 font-medium">
           {link.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
         </p>
       </div>
@@ -144,8 +144,8 @@ const LinkCard: React.FC<LinkCardProps> = ({
 
   return (
     <div
-      className={`group relative touch-none-select hover-lift card-shimmer flex items-center justify-between rounded-2xl p-0.5 glass-link-card transition-all ${isSelected
-        ? 'ring-2 ring-blue-500 bg-blue-50/50 dark:bg-blue-900/20'
+      className={`group relative touch-none-select hover-lift card-shimmer flex items-center justify-between rounded-[1.4rem] p-0.5 min-h-[160px] glass-link-card transition-all ${isSelected
+        ? 'ring-2 ring-[#8fb86a] bg-[#eef6df]/70 dark:bg-[#b7dc8e]/15'
         : 'bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm'
         } ${isBatchEditMode ? 'cursor-pointer' : ''}`}
       onClick={handleClick}
@@ -156,11 +156,11 @@ const LinkCard: React.FC<LinkCardProps> = ({
       onTouchCancel={handleTouchCancel}
     >
       {link.pinned && (
-        <span className="pinned-badge absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full shadow-sm z-10 border-2 border-white dark:border-slate-900" />
+        <span className="pinned-badge absolute -top-1 -right-1 w-3 h-3 rounded-full shadow-sm z-10 border-2 border-white dark:border-slate-900" />
       )}
 
       {isBatchEditMode ? (
-        <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="flex-1 min-w-0 overflow-hidden h-full">
           {content}
         </div>
       ) : (
@@ -168,7 +168,7 @@ const LinkCard: React.FC<LinkCardProps> = ({
           href={safeUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1 min-w-0 overflow-hidden"
+          className="flex-1 min-w-0 overflow-hidden h-full"
           onClick={handleLinkClick}
         >
           {content}
